@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotBox Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0A0A0B; color: #E4E4E7; min-height: 100vh; }
+
+  /* Login */
+  .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .login-box { background: #18181B; border-radius: 16px; padding: 40px; width: 360px; border: 1px solid #27272A; }
+  .login-box h1 { color: #7C3AED; font-size: 24px; margin-bottom: 4px; }
+  .login-box p { color: #71717A; font-size: 14px; margin-bottom: 24px; }
+  .login-box label { color: #A1A1AA; font-size: 13px; display: block; margin-bottom: 6px; }
+  .login-box input { width: 100%; padding: 10px 14px; background: #27272A; border: 1px solid #3F3F46; border-radius: 8px; color: #FFF; font-size: 15px; margin-bottom: 16px; outline: none; }
+  .login-box input:focus { border-color: #7C3AED; }
+  .login-btn { width: 100%; padding: 12px; background: #7C3AED; border: none; border-radius: 10px; color: #FFF; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .login-btn:hover { background: #6D28D9; }
+  .login-error { color: #EF4444; font-size: 13px; margin-bottom: 12px; display: none; }
+
+  /* Dashboard layout */
+  .dashboard { display: none; }
+  .topbar { background: #18181B; border-bottom: 1px solid #27272A; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .topbar h1 { font-size: 20px; color: #FFF; display: flex; align-items: center; gap: 8px; }
+  .topbar .badge { background: rgba(124,58,237,0.15); color: #A855F7; font-size: 12px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+  .logout-btn { background: #27272A; border: 1px solid #3F3F46; color: #A1A1AA; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .logout-btn:hover { background: #3F3F46; color: #FFF; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; padding: 16px 24px 0; background: #18181B; border-bottom: 1px solid #27272A; }
+  .tab { padding: 10px 20px; cursor: pointer; color: #71717A; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: #A1A1AA; }
+  .tab.active { color: #7C3AED; border-bottom-color: #7C3AED; }
+  .tab .count { background: #27272A; padding: 1px 7px; border-radius: 10px; font-size: 12px; margin-left: 6px; }
+  .tab.active .count { background: rgba(124,58,237,0.2); color: #A855F7; }
+
+  /* Content */
+  .content { padding: 24px; max-width: 900px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Cards */
+  .card { background: #18181B; border: 1px solid #27272A; border-radius: 12px; padding: 20px; margin-bottom: 12px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .card-title { font-size: 15px; color: #FFF; font-weight: 600; }
+  .card-subtitle { font-size: 13px; color: #71717A; margin-top: 4px; }
+  .card-body { font-size: 14px; color: #A1A1AA; line-height: 1.5; }
+  .card-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  .reason-badge { display: inline-block; background: #27272A; padding: 3px 10px; border-radius: 6px; font-size: 12px; color: #A1A1AA; margin-right: 4px; margin-bottom: 4px; }
+  .reason-badge.red { background: rgba(239,68,68,0.15); color: #EF4444; }
+  .reason-badge.amber { background: rgba(245,158,11,0.15); color: #F59E0B; }
+  .reason-badge.green { background: rgba(16,185,129,0.15); color: #10B981; }
+  .reason-badge.purple { background: rgba(124,58,237,0.15); color: #A855F7; }
+
+  .btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-red { background: #EF4444; color: #FFF; }
+  .btn-green { background: #10B981; color: #FFF; }
+  .btn-gray { background: #27272A; color: #A1A1AA; border: 1px solid #3F3F46; }
+  .btn-purple { background: #7C3AED; color: #FFF; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .empty { text-align: center; padding: 60px 20px; color: #52525B; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; }
+
+  .appeal-msg { background: #27272A; border-radius: 8px; padding: 12px; margin-top: 8px; font-size: 14px; color: #D4D4D8; line-height: 1.5; font-style: italic; }
+
+  .stats-bar { display: flex; gap: 12px; padding: 16px 24px; }
+  .stat { background: #18181B; border: 1px solid #27272A; border-radius: 10px; padding: 16px 20px; flex: 1; }
+  .stat-num { font-size: 28px; font-weight: 700; color: #FFF; }
+  .stat-label { font-size: 13px; color: #71717A; margin-top: 2px; }
+
+  .loading { text-align: center; padding: 40px; color: #52525B; }
+
+  .monitor-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #27272A; }
+  .monitor-row:last-child { border-bottom: none; }
+  .monitor-info { flex: 1; }
+  .monitor-name { font-size: 14px; color: #FFF; font-weight: 500; }
+  .monitor-date { font-size: 12px; color: #52525B; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <h1>HotBox Admin</h1>
+    <p>Sign in with your admin account</p>
+    <div class="login-error" id="loginError"></div>
+    <label>Email</label>
+    <input type="email" id="email" placeholder="admin@hotboxteam.com">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" onclick="login()">Sign In</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="topbar">
+    <h1>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      Admin Dashboard
+      <span class="badge">ADMIN</span>
+    </h1>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" id="statFlagged">-</div><div class="stat-label">Flagged Posts</div></div>
+    <div class="stat"><div class="stat-num" id="statAppeals">-</div><div class="stat-label">Pending Appeals</div></div>
+    <div class="stat"><div class="stat-num" id="statMonitors">-</div><div class="stat-label">Active Monitors</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('flagged')" id="tabFlagged">Flagged Posts <span class="count" id="countFlagged">0</span></div>
+    <div class="tab" onclick="switchTab('appeals')" id="tabAppeals">Appeals <span class="count" id="countAppeals">0</span></div>
+    <div class="tab" onclick="switchTab('monitors')" id="tabMonitors">Monitors <span class="count" id="countMonitors">0</span></div>
+  </div>
+
+  <div class="content">
+    <!-- FLAGGED POSTS -->
+    <div class="panel active" id="panelFlagged">
+      <div class="loading" id="loadingFlagged">Loading...</div>
+      <div id="flaggedList"></div>
+    </div>
+
+    <!-- APPEALS -->
+    <div class="panel" id="panelAppeals">
+      <div class="loading" id="loadingAppeals">Loading...</div>
+      <div id="appealsList"></div>
+    </div>
+
+    <!-- MONITORS -->
+    <div class="panel" id="panelMonitors">
+      <div class="loading" id="loadingMonitors">Loading...</div>
+      <div id="monitorsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://yrziqufrokiwbadbofib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyemlxdWZyb2tpd2JhZGJvZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNjkyODcsImV4cCI6MjA4Njg0NTI4N30.ZqcRNzhbwmSTVbICpvRSAWTTInGNK83oq2Y-hjj8NP4';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const REASON_LABELS = {
+  illegal_sales: 'Promoting illegal drug sales',
+  explicit_content: 'Explicit content',
+  harassment: 'Harassment or bullying',
+  spam: 'Spam or misleading',
+  violence: 'Violence or threats',
+  other: 'Other violation',
+  multiple_violations: 'Multiple violations',
+};
+
+// ── AUTH ──
+async function login() {
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('password').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+
+  // Check if admin
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+  if (!profile || profile.role !== 'admin') {
+    errEl.textContent = 'Access denied. Admin accounts only.';
+    errEl.style.display = 'block';
+    await sb.auth.signOut();
+    return;
+  }
+
+  showDashboard();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+async function checkSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+    if (profile && profile.role === 'admin') { showDashboard(); return; }
+  }
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+function showDashboard() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadAll();
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+// ── LOAD ALL DATA ──
+async function loadAll() {
+  await Promise.all([loadFlagged(), loadAppeals(), loadMonitors()]);
+}
+
+// ── FLAGGED POSTS ──
+async function loadFlagged() {
+  document.getElementById('loadingFlagged').style.display = 'block';
+
+  const { data: flags } = await sb.from('post_flags').select(`
+    id, post_id, reason, flag_type, created_at,
+    posts:post_id (id, brand, product_name, spark_text, user_id, created_at, is_taken_down,
+      profiles:user_id (username)),
+    profiles:user_id (username)
+  `).order('created_at', { ascending: false });
+
+  document.getElementById('loadingFlagged').style.display = 'none';
+
+  // Group by post_id
+  const grouped = {};
+  (flags || []).forEach(f => {
+    if (!f.posts) return;
+    if (f.posts.is_taken_down) return; // skip already taken down
+    const pid = f.post_id;
+    if (!grouped[pid]) {
+      grouped[pid] = {
+        post: f.posts,
+        reasons: {},
+        total: 0,
+        latest: f.created_at,
+      };
+    }
+    grouped[pid].reasons[f.reason] = (grouped[pid].reasons[f.reason] || 0) + 1;
+    grouped[pid].total++;
+  });
+
+  const sorted = Object.values(grouped).sort((a, b) => b.total - a.total);
+
+  document.getElementById('statFlagged').textContent = sorted.length;
+  document.getElementById('countFlagged').textContent = sorted.length;
+
+  const container = document.getElementById('flaggedList');
+  if (!sorted.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">&#9989;</div><div class="empty-text">No flagged posts</div></div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(item => {
+    const post = item.post;
+    const title = post.brand ? `${post.brand} — ${post.product_name || ''}` : (post.spark_text || 'Post').substring(0, 60);
+    const author = post.profiles?.username || 'Unknown';
+    const reasons = Object.entries(item.reasons).map(([r, c]) =>
+      `<span class="reason-badge red">${c}x ${REASON_LABELS[r] || r}</span>`
+    ).join('');
+    const ago = timeAgo(post.created_at);
+
+    return `<div class="card" id="card-${post.id}">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${esc(title)}</div>
+          <div class="card-subtitle">by @${esc(author)} &middot; ${ago}</div>
+        </div>
+        <span class="reason-badge purple">${item.total} flags</span>
+      </div>
+      <div class="card-body">${reasons}</div>
+      <div class="card-actions">
+        <button class="btn btn-red" onclick="deletePost('${post.id}')">Delete Post</button>
+        <button class="btn btn-gray" onclick="dismissFlags('${post.id}')">Dismiss Flags</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deletePost(postId) {
+  if (!confirm('Permanently delete this post?')) return;
+  await sb.from('posts').delete().eq('id', postId);
+  document.getElementById('card-' + postId)?.remove();
+}
+
+async function dismissFlags(postId) {
+  if (!confirm('Dismiss all flags on this post?')) return;
+  await sb.from('post_flags').delete().eq('post_id', postId);
+  document.getElementById('card-' + postId)?.remove();
+}
+
+// ── APPEALS ──
+async function loadAppeals() {
+  document.getElementById('loadingAppeals').style.display = 'block';
+
+  const { data: appeals } = await sb.from('post_appeals').select(`
+    id, message, status, created_at, post_id,
+    posts:post_id (id, brand, product_name, spark_text, taken_down_reason, user_id,
+      profiles:user_id (username)),
+    profiles:user_id (username)
+  `).eq('status', 'pending').order('created_at', { ascending: true });
+
+  document.getElementById('loadingAppeals').style.display = 'none';
+  document.getElementById('statAppeals').textContent = (appeals || []).length;
+  document.getElementById('countAppeals').textContent = (appeals || []).length;
+
+  const container = document.getElementById('appealsList');
+  if (!appeals?.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div><div class="empty-text">No pending appeals</div></div>';
+    return;
+  }
+
+  container.innerHTML = appeals.map(a => {
+    const post = a.posts;
+    const title = post?.brand ? `${post.brand} — ${post.product_name || ''}` : (post?.spark_text || 'Post').substring(0, 60);
+    const author = a.profiles?.username || 'Unknown';
+    const reason = REASON_LABELS[post?.taken_down_reason] || post?.taken_down_reason || 'Unknown';
+
+    return `<div class="card" id="appeal-${a.id}">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${esc(title)}</div>
+          <div class="card-subtitle">by @${esc(author)} &middot; Taken down for: <span class="reason-badge amber">${reason}</span></div>
+        </div>
+      </div>
+      <div class="appeal-msg">"${esc(a.message)}"</div>
+      <div class="card-actions">
+        <button class="btn btn-green" onclick="reviewAppeal('${a.id}', '${a.post_id}', 'approved')">Restore Post</button>
+        <button class="btn btn-red" onclick="reviewAppeal('${a.id}', '${a.post_id}', 'denied')">Deny</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function reviewAppeal(appealId, postId, decision) {
+  const label = decision === 'approved' ? 'restore this post' : 'deny this appeal';
+  if (!confirm(`Are you sure you want to ${label}?`)) return;
+
+  const { data: { session } } = await sb.auth.getSession();
+
+  await sb.from('post_appeals').update({
+    status: decision,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: session.user.id,
+  }).eq('id', appealId);
+
+  if (decision === 'approved') {
+    await sb.from('posts').update({
+      is_taken_down: false,
+      taken_down_reason: null,
+      taken_down_at: null,
+    }).eq('id', postId);
+  }
+
+  document.getElementById('appeal-' + appealId)?.remove();
+}
+
+// ── MONITORS ──
+async function loadMonitors() {
+  document.getElementById('loadingMonitors').style.display = 'block';
+
+  const { data: monitors } = await sb.from('monitors').select(`
+    id, user_id, status, applied_at, approved_at,
+    profiles:user_id (username)
+  `).order('applied_at', { ascending: false });
+
+  document.getElementById('loadingMonitors').style.display = 'none';
+
+  const approved = (monitors || []).filter(m => m.status === 'approved');
+  document.getElementById('statMonitors').textContent = approved.length;
+  document.getElementById('countMonitors').textContent = (monitors || []).length;
+
+  const container = document.getElementById('monitorsList');
+  if (!monitors?.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">&#128101;</div><div class="empty-text">No monitor applications yet</div></div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="card">' + monitors.map(m => {
+    const username = m.profiles?.username || 'Unknown';
+    const statusBadge = m.status === 'approved'
+      ? '<span class="reason-badge green">Approved</span>'
+      : m.status === 'pending'
+      ? '<span class="reason-badge amber">Pending</span>'
+      : '<span class="reason-badge red">Revoked</span>';
+    const date = new Date(m.applied_at).toLocaleDateString();
+    const approvedDate = m.approved_at ? ` &middot; Approved: ${new Date(m.approved_at).toLocaleDateString()}` : '';
+    const revokeBtn = m.status === 'approved'
+      ? `<button class="btn btn-gray" onclick="revokeMonitor('${m.id}', '${m.user_id}')">Revoke</button>`
+      : m.status === 'pending'
+      ? `<button class="btn btn-green" onclick="approveMonitor('${m.id}', '${m.user_id}')">Approve Now</button>`
+      : '';
+
+    return `<div class="monitor-row">
+      <div class="monitor-info">
+        <div class="monitor-name">@${esc(username)} ${statusBadge}</div>
+        <div class="monitor-date">Applied: ${date}${approvedDate}</div>
+      </div>
+      ${revokeBtn}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+async function revokeMonitor(monitorId, userId) {
+  if (!confirm('Revoke this monitor\'s access?')) return;
+  await sb.from('monitors').update({ status: 'revoked' }).eq('id', monitorId);
+  await sb.from('profiles').update({ is_monitor: false }).eq('id', userId);
+  await loadMonitors();
+}
+
+async function approveMonitor(monitorId, userId) {
+  if (!confirm('Approve this monitor now?')) return;
+  await sb.from('monitors').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', monitorId);
+  await sb.from('profiles').update({ is_monitor: true }).eq('id', userId);
+  await loadMonitors();
+}
+
+// ── UTILS ──
+function esc(str) {
+  const el = document.createElement('span');
+  el.textContent = str || '';
+  return el.innerHTML;
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+// ── INIT ──
+checkSession();
+</script>
+</body>
+</html>
