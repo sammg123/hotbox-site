@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promote on HotBox</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0A0A0B; color: #E4E4E7; min-height: 100vh; }
+
+  /* ── Auth Gate ── */
+  .auth-gate { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .auth-box { background: #18181B; border-radius: 16px; padding: 40px; width: 380px; border: 1px solid #27272A; }
+  .auth-box img { display: block; width: 180px; margin: 0 auto 20px; }
+  .auth-box h1 { color: #7C3AED; font-size: 22px; text-align: center; margin-bottom: 4px; }
+  .auth-box .subtitle { color: #71717A; font-size: 14px; text-align: center; margin-bottom: 24px; }
+  .auth-box label { color: #A1A1AA; font-size: 13px; display: block; margin-bottom: 6px; }
+  .auth-box input { width: 100%; padding: 10px 14px; background: #27272A; border: 1px solid #3F3F46; border-radius: 8px; color: #FFF; font-size: 15px; margin-bottom: 16px; outline: none; }
+  .auth-box input:focus { border-color: #7C3AED; }
+  .auth-error { color: #EF4444; font-size: 13px; margin-bottom: 12px; display: none; }
+
+  /* ── Layout ── */
+  .app { display: none; }
+  .topbar { background: #18181B; border-bottom: 1px solid #27272A; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-left img { width: 28px; height: 28px; }
+  .topbar-left h1 { font-size: 18px; color: #FFF; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .topbar-user { color: #71717A; font-size: 13px; }
+
+  /* ── Step Indicator ── */
+  .steps { display: flex; justify-content: center; gap: 8px; padding: 24px 0 16px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 4px; background: #27272A; transition: all 0.3s; }
+  .step-dot.done { background: #7C3AED; }
+  .step-dot.active { background: #7C3AED; width: 24px; }
+
+  /* ── Wizard Container ── */
+  .wizard { max-width: 520px; margin: 0 auto; padding: 0 20px 40px; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-title { font-size: 22px; font-weight: 700; color: #FFF; margin-bottom: 6px; }
+  .step-desc { font-size: 14px; color: #71717A; margin-bottom: 28px; }
+
+  /* ── Form Elements ── */
+  .field { margin-bottom: 20px; }
+  .field label { color: #A1A1AA; font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 12px 14px; background: #18181B; border: 1px solid #27272A; border-radius: 10px; color: #FFF; font-size: 15px; outline: none; font-family: inherit; }
+  .field input:focus, .field textarea:focus { border-color: #7C3AED; }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .field .hint { color: #52525B; font-size: 12px; margin-top: 4px; }
+  .field .error { color: #EF4444; font-size: 12px; margin-top: 4px; display: none; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 8px 16px; border-radius: 20px; background: #18181B; border: 1px solid #27272A; color: #A1A1AA; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .chip:hover { border-color: #3F3F46; }
+  .chip.selected { background: rgba(124,58,237,0.15); border-color: #7C3AED; color: #A855F7; }
+
+  /* Toggle */
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #18181B; border-radius: 10px; border: 1px solid #27272A; margin-bottom: 16px; }
+  .toggle-label { font-size: 15px; color: #FFF; }
+  .toggle-sub { font-size: 12px; color: #71717A; margin-top: 2px; }
+  .toggle { width: 44px; height: 24px; border-radius: 12px; background: #27272A; cursor: pointer; position: relative; transition: background 0.2s; }
+  .toggle.on { background: #7C3AED; }
+  .toggle::after { content: ''; width: 20px; height: 20px; border-radius: 10px; background: #FFF; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(20px); }
+
+  /* Slider */
+  .slider-card { background: #18181B; border: 1px solid #27272A; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .slider-title { font-size: 14px; color: #A1A1AA; }
+  .slider-value { font-size: 20px; font-weight: 700; color: #FFF; }
+  input[type="range"] { width: 100%; -webkit-appearance: none; background: transparent; }
+  input[type="range"]::-webkit-slider-track { height: 4px; border-radius: 2px; background: #27272A; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 10px; background: #7C3AED; cursor: pointer; margin-top: -8px; }
+
+  /* Cards */
+  .info-card { background: #18181B; border: 1px solid #27272A; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #27272A; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: #71717A; font-size: 14px; }
+  .info-value { color: #FFF; font-size: 14px; font-weight: 500; }
+  .total-card { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; }
+  .total-amount { font-size: 36px; font-weight: 700; color: #FFF; }
+  .total-sub { font-size: 13px; color: #71717A; margin-top: 4px; }
+
+  /* Audience badge */
+  .audience-card { background: #18181B; border: 1px solid #27272A; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
+  .audience-num { font-size: 28px; font-weight: 700; color: #FFF; }
+  .audience-label { font-size: 13px; color: #71717A; margin-top: 4px; }
+  .audience-badge { display: inline-block; padding: 3px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+  .audience-badge.green { background: rgba(16,185,129,0.15); color: #10B981; }
+  .audience-badge.amber { background: rgba(245,158,11,0.15); color: #F59E0B; }
+  .audience-badge.red { background: rgba(239,68,68,0.15); color: #EF4444; }
+
+  /* Preview card */
+  .preview-card { background: #18181B; border: 1px solid #27272A; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .preview-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .preview-avatar { width: 36px; height: 36px; border-radius: 18px; background: #27272A; display: flex; align-items: center; justify-content: center; color: #7C3AED; font-weight: 700; font-size: 16px; }
+  .preview-name { font-size: 14px; font-weight: 600; color: #FFF; }
+  .preview-promoted { background: rgba(124,58,237,0.15); color: #A855F7; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; margin-left: 6px; }
+  .preview-time { font-size: 12px; color: #52525B; }
+  .preview-content { font-size: 14px; color: #A1A1AA; margin-bottom: 12px; line-height: 1.5; }
+  .preview-cta { display: flex; align-items: center; gap: 8px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 10px; padding: 10px 14px; color: #A855F7; font-size: 14px; font-weight: 500; }
+  .preview-cta span { flex: 1; }
+
+  /* Buttons */
+  .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: #7C3AED; color: #FFF; }
+  .btn-primary:hover { background: #6D28D9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: #27272A; color: #A1A1AA; border: 1px solid #3F3F46; }
+  .btn-secondary:hover { background: #3F3F46; color: #FFF; }
+  .btn-stripe { background: #635BFF; color: #FFF; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-stripe:hover { background: #5147E5; }
+  .btn-row { display: flex; gap: 10px; margin-top: 24px; }
+  .btn-row .btn { flex: 1; }
+  .btn-back { background: transparent; color: #71717A; border: 1px solid #27272A; }
+  .btn-back:hover { color: #FFF; border-color: #3F3F46; }
+
+  .secure-note { text-align: center; color: #52525B; font-size: 12px; margin-top: 12px; }
+
+  /* Post type selector */
+  .type-cards { display: flex; gap: 10px; margin-bottom: 20px; }
+  .type-card { flex: 1; padding: 16px; background: #18181B; border: 2px solid #27272A; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .type-card:hover { border-color: #3F3F46; }
+  .type-card.selected { border-color: #7C3AED; background: rgba(124,58,237,0.08); }
+  .type-card .type-icon { font-size: 24px; margin-bottom: 6px; }
+  .type-card .type-name { font-size: 14px; color: #FFF; font-weight: 500; }
+
+  /* Image upload */
+  .upload-area { border: 2px dashed #27272A; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: border-color 0.2s; margin-bottom: 16px; }
+  .upload-area:hover { border-color: #7C3AED; }
+  .upload-area.has-image { border: none; padding: 0; }
+  .upload-area img { max-width: 100%; border-radius: 12px; }
+  .upload-text { color: #52525B; font-size: 14px; }
+
+  /* Rating bars */
+  .rating-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .rating-label { width: 90px; font-size: 13px; color: #A1A1AA; }
+  .rating-stars { display: flex; gap: 4px; }
+  .star { width: 28px; height: 28px; border-radius: 6px; background: #27272A; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #52525B; font-size: 14px; transition: all 0.15s; }
+  .star.filled { background: rgba(124,58,237,0.2); color: #A855F7; }
+
+  /* Poll options */
+  .poll-option { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .poll-option input { flex: 1; }
+  .poll-remove { background: none; border: none; color: #EF4444; cursor: pointer; font-size: 18px; padding: 4px 8px; }
+  .add-option { background: none; border: 1px dashed #27272A; border-radius: 8px; padding: 10px; color: #71717A; cursor: pointer; width: 100%; font-size: 14px; margin-bottom: 16px; }
+  .add-option:hover { border-color: #7C3AED; color: #A855F7; }
+
+  /* Responsive */
+  @media (max-width: 540px) {
+    .wizard { padding: 0 16px 40px; }
+    .type-cards { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH GATE ═══ -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-box">
+    <img src="/logo-full.png" alt="HotBox">
+    <h1>Promote on HotBox</h1>
+    <p class="subtitle">Sign in to create your promoted post</p>
+    <div class="auth-error" id="authError"></div>
+    <label>Email</label>
+    <input type="email" id="authEmail" placeholder="you@example.com">
+    <label>Password</label>
+    <input type="password" id="authPass" placeholder="Password" onkeydown="if(event.key==='Enter')authLogin()">
+    <button class="btn btn-primary" onclick="authLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="/favicon.png" alt="">
+      <h1>Promote</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <button class="btn-secondary" style="padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid #27272A;background:#27272A;color:#A1A1AA;cursor:pointer" onclick="authLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="steps" id="stepDots"></div>
+
+  <div class="wizard">
+
+    <!-- ═══ STEP 1: Company Info ═══ -->
+    <div class="step active" id="step1">
+      <div class="step-title">Company Info</div>
+      <div class="step-desc">Tell us about your brand</div>
+
+      <div class="field">
+        <label>Company / Brand Name</label>
+        <input type="text" id="companyName" placeholder="e.g., Green Leaf Dispensary" autocapitalize="words">
+        <div class="hint">This will appear as the username on your promoted post</div>
+      </div>
+
+      <div class="field">
+        <label>Website or Phone Number</label>
+        <input type="text" id="websiteOrPhone" placeholder="e.g., greenleaf.com or (555) 123-4567">
+        <div class="hint" id="contactHint">Where users will be directed when they tap your CTA</div>
+      </div>
+
+      <div class="field">
+        <label>Call to Action</label>
+        <div class="chips" id="ctaChips"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goStep(2)" id="btn1Next">Next</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 2: Geo Targeting ═══ -->
+    <div class="step" id="step2">
+      <div class="step-title">Targeting</div>
+      <div class="step-desc">Choose who sees your ad</div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Location Targeting</div>
+          <div class="toggle-sub" id="geoToggleSub">Promote to the entire app</div>
+        </div>
+        <div class="toggle" id="geoToggle" onclick="toggleGeo()"></div>
+      </div>
+
+      <div id="geoControls" style="display:none">
+        <div class="slider-card">
+          <div class="slider-header">
+            <div class="slider-title">Radius</div>
+            <div class="slider-value" id="radiusValue">25 mi</div>
+          </div>
+          <input type="range" min="5" max="100" step="5" value="25" id="radiusSlider" oninput="updateRadius()">
+        </div>
+
+        <div class="field">
+          <label>City or ZIP Code</label>
+          <input type="text" id="geoLocation" placeholder="e.g., Los Angeles, CA or 90210">
+          <div class="hint">We'll target users near this location</div>
+        </div>
+      </div>
+
+      <div class="audience-card">
+        <div class="audience-num" id="audienceNum">500,000</div>
+        <div class="audience-label">Estimated Audience</div>
+        <div class="audience-badge green" id="audienceBadge">Large</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(1)">Back</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Next</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 3: Post Content ═══ -->
+    <div class="step" id="step3">
+      <div class="step-title">Create Your Post</div>
+      <div class="step-desc">This is what users will see in their feed</div>
+
+      <div class="type-cards">
+        <div class="type-card selected" onclick="selectPostType('review')" id="typeReview">
+          <div class="type-icon">&#9733;</div>
+          <div class="type-name">Review</div>
+        </div>
+        <div class="type-card" onclick="selectPostType('spark')" id="typeSpark">
+          <div class="type-icon">&#9889;</div>
+          <div class="type-name">Spark</div>
+        </div>
+        <div class="type-card" onclick="selectPostType('poll')" id="typePoll">
+          <div class="type-icon">&#128202;</div>
+          <div class="type-name">Poll</div>
+        </div>
+      </div>
+
+      <!-- Review fields -->
+      <div id="reviewFields">
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
+          <div class="upload-text">Click to upload product image</div>
+          <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="handleImageUpload(this)">
+        </div>
+
+        <div class="field">
+          <label>Brand</label>
+          <input type="text" id="postBrand" placeholder="e.g., Cookies">
+        </div>
+        <div class="field">
+          <label>Product Name</label>
+          <input type="text" id="postProduct" placeholder="e.g., Gary Payton">
+        </div>
+
+        <div class="field">
+          <label>Ratings</label>
+          <div class="rating-row"><span class="rating-label">Potency</span><div class="rating-stars" id="ratingPotency"></div></div>
+          <div class="rating-row"><span class="rating-label">Taste</span><div class="rating-stars" id="ratingTaste"></div></div>
+          <div class="rating-row"><span class="rating-label">Smoothness</span><div class="rating-stars" id="ratingSmoothness"></div></div>
+          <div class="rating-row"><span class="rating-label">Value</span><div class="rating-stars" id="ratingValue"></div></div>
+        </div>
+      </div>
+
+      <!-- Spark fields -->
+      <div id="sparkFields" style="display:none">
+        <div class="upload-area" id="uploadAreaSpark" onclick="document.getElementById('imageInputSpark').click()">
+          <div class="upload-text">Add an image (optional)</div>
+          <input type="file" id="imageInputSpark" accept="image/*" style="display:none" onchange="handleImageUpload(this)">
+        </div>
+        <div class="field">
+          <label>What's on your mind?</label>
+          <textarea id="sparkText" placeholder="Write your spark..." rows="4"></textarea>
+        </div>
+      </div>
+
+      <!-- Poll fields -->
+      <div id="pollFields" style="display:none">
+        <div class="field">
+          <label>Poll Question</label>
+          <input type="text" id="pollQuestion" placeholder="e.g., Best strain for relaxation?">
+        </div>
+        <div class="field">
+          <label>Options</label>
+          <div id="pollOptions">
+            <div class="poll-option"><input type="text" placeholder="Option 1"><button class="poll-remove" onclick="removePollOption(this)">×</button></div>
+            <div class="poll-option"><input type="text" placeholder="Option 2"><button class="poll-remove" onclick="removePollOption(this)">×</button></div>
+          </div>
+          <button class="add-option" onclick="addPollOption()">+ Add Option</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Review Text (optional)</label>
+        <textarea id="postReviewText" placeholder="Share your thoughts..." rows="3"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(2)">Back</button>
+        <button class="btn btn-primary" onclick="goStep(4)">Preview</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 4: Preview ═══ -->
+    <div class="step" id="step4">
+      <div class="step-title">Preview</div>
+      <div class="step-desc">This is how your ad will appear in the feed</div>
+
+      <div class="preview-card" id="previewCard"></div>
+
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">Badge</span><span class="info-value"><span style="background:rgba(124,58,237,0.15);color:#A855F7;font-size:11px;padding:2px 8px;border-radius:6px">Promoted</span></span></div>
+        <div class="info-row"><span class="info-label">Targeting</span><span class="info-value" id="previewTargeting">Entire App</span></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(3)">Back</button>
+        <button class="btn btn-primary" onclick="goStep(5)">Set Budget</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 5: Budget ═══ -->
+    <div class="step" id="step5">
+      <div class="step-title">Budget</div>
+      <div class="step-desc">Set your daily spend and duration</div>
+
+      <div class="slider-card">
+        <div class="slider-header">
+          <div class="slider-title">Daily Budget</div>
+          <div class="slider-value" id="budgetValue">$10/day</div>
+        </div>
+        <input type="range" min="1" max="100" step="1" value="10" id="budgetSlider" oninput="updateBudget()">
+      </div>
+
+      <div class="slider-card">
+        <div class="slider-header">
+          <div class="slider-title">Duration</div>
+          <div class="slider-value" id="durationValue">7 days</div>
+        </div>
+        <input type="range" min="1" max="90" step="1" value="7" id="durationSlider" oninput="updateBudget()">
+      </div>
+
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">Est. Reach</span><span class="info-value" id="estReach">—</span></div>
+        <div class="info-row"><span class="info-label">Est. Conversions/day</span><span class="info-value" id="estConversions">—</span></div>
+        <div class="info-row"><span class="info-label">Audience</span><span class="info-value" id="estAudience">—</span></div>
+      </div>
+
+      <div class="total-card">
+        <div class="total-amount" id="totalAmount">$70</div>
+        <div class="total-sub" id="totalSub">$10/day × 7 days</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(4)">Back</button>
+        <button class="btn btn-primary" onclick="goStep(6)">Continue to Payment</button>
+      </div>
+    </div>
+
+    <!-- ═══ STEP 6: Payment ═══ -->
+    <div class="step" id="step6">
+      <div class="step-title">Checkout</div>
+      <div class="step-desc">Review and pay to launch your ad</div>
+
+      <div class="info-card">
+        <div class="info-row"><span class="info-label">Company</span><span class="info-value" id="payCompany">—</span></div>
+        <div class="info-row"><span class="info-label">Ad Type</span><span class="info-value" id="payType">—</span></div>
+        <div class="info-row"><span class="info-label">Targeting</span><span class="info-value" id="payTarget">—</span></div>
+        <div class="info-row"><span class="info-label">Audience</span><span class="info-value" id="payAudience">—</span></div>
+        <div class="info-row"><span class="info-label">Daily Budget</span><span class="info-value" id="payBudget">—</span></div>
+        <div class="info-row"><span class="info-label">Duration</span><span class="info-value" id="payDuration">—</span></div>
+      </div>
+
+      <div class="total-card">
+        <div class="total-amount" id="payTotal">$70</div>
+        <div class="total-sub" id="payTotalSub">$10/day × 7 days</div>
+      </div>
+
+      <button class="btn btn-stripe" onclick="handlePayment()" id="payBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span id="payBtnText">Pay with Stripe</span>
+      </button>
+      <div class="secure-note">Secured by Stripe · 256-bit SSL encryption</div>
+
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-back" onclick="goStep(5)" id="payBackBtn">Back</button>
+      </div>
+    </div>
+
+    <!-- ═══ SUCCESS ═══ -->
+    <div class="step" id="stepSuccess">
+      <div style="text-align:center;padding:40px 0;">
+        <div style="font-size:48px;margin-bottom:16px;">&#10003;</div>
+        <div class="step-title" style="text-align:center">You're Live!</div>
+        <div class="step-desc" style="text-align:center;margin-bottom:32px">Your promoted post is now running. You can manage it from the app.</div>
+        <button class="btn btn-primary" onclick="window.location.reload()" style="max-width:240px;margin:0 auto">Create Another Ad</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'https://yrziqufrokiwbadbofib.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyemlxdWZyb2tpd2JhZGJvZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNjkyODcsImV4cCI6MjA4Njg0NTI4N30.ZqcRNzhbwmSTVbICpvRSAWTTInGNK83oq2Y-hjj8NP4';
+// TODO: Replace with your Stripe publishable key
+const STRIPE_KEY = 'pk_test_REPLACE_WITH_YOUR_KEY';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let currentStep = 1;
+const totalSteps = 6;
+
+// ── FORM STATE ──
+const formData = {
+  companyName: '', websiteOrPhone: '', isPhone: false, ctaLabel: '',
+  geoEnabled: false, geoLocation: '', geoRadius: 25, audienceSize: 500000,
+  postType: 'review', brand: '', productName: '', reviewText: '',
+  sparkText: '', pollQuestion: '', pollOptions: [],
+  ratings: { potency: 0, taste: 0, smoothness: 0, value: 0 },
+  imageFile: null, imagePreview: null,
+  budgetPerDay: 10, durationDays: 7,
+};
+
+const WEB_CTAS = ['Learn More', 'Shop Now', 'Visit Us', 'Get Started'];
+const PHONE_CTAS = ['Call Us', 'Text Us', ...WEB_CTAS];
+
+// ── AUTH ──
+async function authLogin() {
+  const email = document.getElementById('authEmail').value;
+  const pass = document.getElementById('authPass').value;
+  const err = document.getElementById('authError');
+  err.style.display = 'none';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+  currentUser = data.user;
+  showApp();
+}
+
+async function authLogout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('authGate').style.display = 'flex';
+}
+
+async function checkAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { currentUser = session.user; showApp(); }
+  else { document.getElementById('authGate').style.display = 'flex'; }
+}
+
+function showApp() {
+  document.getElementById('authGate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('topbarUser').textContent = currentUser.email;
+  initForm();
+}
+
+// ── STEP NAVIGATION ──
+function goStep(n) {
+  if (n === 2 && !validateStep1()) return;
+  if (n === 4) buildPreview();
+  if (n === 5) updateBudget();
+  if (n === 6) fillCheckout();
+
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(n <= totalSteps ? `step${n}` : 'stepSuccess').classList.add('active');
+  currentStep = n;
+  renderDots();
+  window.scrollTo(0, 0);
+}
+
+function renderDots() {
+  const el = document.getElementById('stepDots');
+  el.innerHTML = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i < currentStep ? ' done' : '') + (i === currentStep ? ' active' : '');
+    el.appendChild(dot);
+  }
+}
+
+// ── STEP 1: Company ──
+function initForm() {
+  renderDots();
+  renderCTAs();
+  initRatings();
+  updateBudget();
+
+  document.getElementById('websiteOrPhone').addEventListener('input', e => {
+    const val = e.target.value;
+    const isPhone = /^[\d\s()+\-]+$/.test(val) && val.replace(/\D/g, '').length >= 7;
+    formData.isPhone = isPhone;
+    renderCTAs();
+    document.getElementById('contactHint').textContent = isPhone
+      ? 'Users will be able to call this number directly'
+      : 'Where users will be directed when they tap your CTA';
+  });
+}
+
+function renderCTAs() {
+  const ctas = formData.isPhone ? PHONE_CTAS : WEB_CTAS;
+  const el = document.getElementById('ctaChips');
+  el.innerHTML = ctas.map(c =>
+    `<div class="chip${formData.ctaLabel === c ? ' selected' : ''}" onclick="selectCTA('${c}')">${c}</div>`
+  ).join('');
+}
+
+function selectCTA(label) {
+  formData.ctaLabel = label;
+  renderCTAs();
+}
+
+function validateStep1() {
+  formData.companyName = document.getElementById('companyName').value.trim();
+  formData.websiteOrPhone = document.getElementById('websiteOrPhone').value.trim();
+  if (!formData.companyName) { alert('Please enter your company name'); return false; }
+  if (!formData.websiteOrPhone) { alert('Please enter your website or phone number'); return false; }
+  if (!formData.ctaLabel) { alert('Please select a call to action'); return false; }
+  return true;
+}
+
+// ── STEP 2: Geo ──
+function toggleGeo() {
+  formData.geoEnabled = !formData.geoEnabled;
+  const toggle = document.getElementById('geoToggle');
+  toggle.classList.toggle('on', formData.geoEnabled);
+  document.getElementById('geoControls').style.display = formData.geoEnabled ? 'block' : 'none';
+  document.getElementById('geoToggleSub').textContent = formData.geoEnabled ? 'Target users near a location' : 'Promote to the entire app';
+  updateAudience();
+}
+
+function updateRadius() {
+  formData.geoRadius = parseInt(document.getElementById('radiusSlider').value);
+  document.getElementById('radiusValue').textContent = formData.geoRadius + ' mi';
+  updateAudience();
+}
+
+function updateAudience() {
+  if (!formData.geoEnabled) {
+    formData.audienceSize = 500000;
+  } else {
+    formData.audienceSize = Math.round(formData.geoRadius * formData.geoRadius * 10);
+  }
+  document.getElementById('audienceNum').textContent = formData.audienceSize.toLocaleString();
+
+  let label, cls;
+  if (formData.audienceSize < 1000) { label = 'Too Small'; cls = 'red'; }
+  else if (formData.audienceSize < 5000) { label = 'Small'; cls = 'amber'; }
+  else if (formData.audienceSize < 25000) { label = 'Medium'; cls = 'amber'; }
+  else if (formData.audienceSize < 100000) { label = 'Large'; cls = 'green'; }
+  else { label = 'Very Large'; cls = 'green'; }
+
+  const badge = document.getElementById('audienceBadge');
+  badge.textContent = label;
+  badge.className = 'audience-badge ' + cls;
+}
+
+// ── STEP 3: Post Content ──
+function selectPostType(type) {
+  formData.postType = type;
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('type' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('selected');
+  document.getElementById('reviewFields').style.display = type === 'review' ? 'block' : 'none';
+  document.getElementById('sparkFields').style.display = type === 'spark' ? 'block' : 'none';
+  document.getElementById('pollFields').style.display = type === 'poll' ? 'block' : 'none';
+}
+
+function handleImageUpload(input) {
+  if (input.files && input.files[0]) {
+    formData.imageFile = input.files[0];
+    const reader = new FileReader();
+    reader.onload = e => {
+      formData.imagePreview = e.target.result;
+      const area = input.closest('.upload-area');
+      area.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      area.classList.add('has-image');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function initRatings() {
+  ['Potency', 'Taste', 'Smoothness', 'Value'].forEach(cat => {
+    const el = document.getElementById('rating' + cat);
+    el.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.textContent = '★';
+      star.onclick = () => {
+        formData.ratings[cat.toLowerCase()] = i;
+        el.querySelectorAll('.star').forEach((s, idx) => s.classList.toggle('filled', idx < i));
+      };
+      el.appendChild(star);
+    }
+  });
+}
+
+function addPollOption() {
+  const container = document.getElementById('pollOptions');
+  const idx = container.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'poll-option';
+  div.innerHTML = `<input type="text" placeholder="Option ${idx}"><button class="poll-remove" onclick="removePollOption(this)">×</button>`;
+  container.appendChild(div);
+}
+
+function removePollOption(btn) {
+  const container = document.getElementById('pollOptions');
+  if (container.children.length > 2) btn.parentElement.remove();
+}
+
+// ── STEP 4: Preview ──
+function buildPreview() {
+  formData.brand = document.getElementById('postBrand')?.value || '';
+  formData.productName = document.getElementById('postProduct')?.value || '';
+  formData.reviewText = document.getElementById('postReviewText')?.value || '';
+  formData.sparkText = document.getElementById('sparkText')?.value || '';
+  formData.pollQuestion = document.getElementById('pollQuestion')?.value || '';
+  formData.geoLocation = document.getElementById('geoLocation')?.value || '';
+
+  const opts = document.querySelectorAll('#pollOptions input');
+  formData.pollOptions = Array.from(opts).map(i => i.value).filter(Boolean);
+
+  const initial = (formData.companyName || '?').charAt(0).toUpperCase();
+  let content = '';
+
+  if (formData.postType === 'review') {
+    content = `
+      ${formData.imagePreview ? `<img src="${formData.imagePreview}" style="width:100%;border-radius:10px;margin-bottom:12px">` : ''}
+      <div style="font-weight:600;color:#FFF;margin-bottom:4px">${esc(formData.brand)} — ${esc(formData.productName)}</div>
+      ${formData.reviewText ? `<div class="preview-content">${esc(formData.reviewText)}</div>` : ''}
+    `;
+  } else if (formData.postType === 'spark') {
+    content = `
+      ${formData.imagePreview ? `<img src="${formData.imagePreview}" style="width:100%;border-radius:10px;margin-bottom:12px">` : ''}
+      <div class="preview-content">${esc(formData.sparkText)}</div>
+    `;
+  } else {
+    content = `
+      <div style="font-weight:600;color:#FFF;margin-bottom:8px">${esc(formData.pollQuestion)}</div>
+      ${formData.pollOptions.map(o => `<div style="background:#27272A;border-radius:8px;padding:10px;margin-bottom:6px;color:#A1A1AA">${esc(o)}</div>`).join('')}
+    `;
+  }
+
+  const targeting = formData.geoEnabled && formData.geoLocation
+    ? `${formData.geoLocation} · ${formData.geoRadius}mi`
+    : 'Entire App';
+
+  document.getElementById('previewCard').innerHTML = `
+    <div class="preview-header">
+      <div class="preview-avatar">${initial}</div>
+      <div>
+        <div><span class="preview-name">${esc(formData.companyName)}</span><span class="preview-promoted">Promoted</span></div>
+        <div class="preview-time">Just now</div>
+      </div>
+    </div>
+    ${content}
+    <div class="preview-cta">
+      <span>${esc(formData.ctaLabel)}</span>
+      <span style="color:#52525B">›</span>
+    </div>
+  `;
+
+  document.getElementById('previewTargeting').textContent = targeting;
+}
+
+// ── STEP 5: Budget ──
+function updateBudget() {
+  formData.budgetPerDay = parseInt(document.getElementById('budgetSlider').value);
+  formData.durationDays = parseInt(document.getElementById('durationSlider').value);
+
+  document.getElementById('budgetValue').textContent = `$${formData.budgetPerDay}/day`;
+  document.getElementById('durationValue').textContent = `${formData.durationDays} day${formData.durationDays > 1 ? 's' : ''}`;
+
+  const total = formData.budgetPerDay * formData.durationDays;
+  const dailyReach = Math.min(formData.audienceSize, formData.budgetPerDay * 100);
+  const reach = Math.min(formData.audienceSize, Math.round(dailyReach * formData.durationDays * 0.7));
+  const convLow = Math.max(1, Math.round(dailyReach * 0.02));
+  const convHigh = Math.max(2, Math.round(dailyReach * 0.04));
+
+  document.getElementById('estReach').textContent = reach.toLocaleString() + ' impressions';
+  document.getElementById('estConversions').textContent = `${convLow}–${convHigh}/day`;
+  document.getElementById('estAudience').textContent = formData.audienceSize.toLocaleString();
+
+  document.getElementById('totalAmount').textContent = `$${total}`;
+  document.getElementById('totalSub').textContent = `$${formData.budgetPerDay}/day × ${formData.durationDays} days`;
+}
+
+// ── STEP 6: Checkout ──
+function fillCheckout() {
+  const total = formData.budgetPerDay * formData.durationDays;
+  const targeting = formData.geoEnabled && formData.geoLocation
+    ? `${formData.geoLocation} · ${formData.geoRadius}mi`
+    : 'Entire App';
+
+  document.getElementById('payCompany').textContent = formData.companyName;
+  document.getElementById('payType').textContent = formData.postType.charAt(0).toUpperCase() + formData.postType.slice(1);
+  document.getElementById('payTarget').textContent = targeting;
+  document.getElementById('payAudience').textContent = formData.audienceSize.toLocaleString();
+  document.getElementById('payBudget').textContent = `$${formData.budgetPerDay}/day`;
+  document.getElementById('payDuration').textContent = `${formData.durationDays} days`;
+  document.getElementById('payTotal').textContent = `$${total}`;
+  document.getElementById('payTotalSub').textContent = `$${formData.budgetPerDay}/day × ${formData.durationDays} days`;
+  document.getElementById('payBtnText').textContent = `Pay $${total} with Stripe`;
+}
+
+// ── PAYMENT ──
+async function handlePayment() {
+  const btn = document.getElementById('payBtn');
+  const backBtn = document.getElementById('payBackBtn');
+  btn.disabled = true;
+  backBtn.disabled = true;
+  document.getElementById('payBtnText').textContent = 'Processing...';
+
+  try {
+    // TODO: Replace with actual Stripe Checkout
+    // For now, simulate success and create the promotion in Supabase
+    // In production, you'd create a Stripe Checkout Session via your API,
+    // redirect to Stripe, and create the promotion on webhook confirmation.
+
+    // Create the promoted post in Supabase
+    const postData = {
+      user_id: currentUser.id,
+      brand: formData.brand || formData.companyName,
+      product_name: formData.productName || null,
+      spark_text: formData.sparkText || null,
+      review_text: formData.reviewText || null,
+      is_poll: formData.postType === 'poll',
+      poll_options: formData.postType === 'poll' ? formData.pollOptions.map(o => ({ text: o, votes: 0 })) : null,
+      category: formData.postType === 'spark' ? 'spark' : 'review',
+      is_promoted: true,
+      promo_url: formData.websiteOrPhone,
+      promo_label: formData.ctaLabel,
+      rating_potency: formData.ratings.potency || null,
+      rating_taste: formData.ratings.taste || null,
+      rating_smoothness: formData.ratings.smoothness || null,
+      rating_value: formData.ratings.value || null,
+      upvotes: 0,
+      downvotes: 0,
+      tried_this_count: 0,
+    };
+
+    const { data: post, error: postErr } = await sb.from('posts').insert(postData).select().single();
+    if (postErr) throw postErr;
+
+    // Create promotion record
+    const { error: promoErr } = await sb.from('promotions').insert({
+      user_id: currentUser.id,
+      post_id: post.id,
+      company_name: formData.companyName,
+      website: !formData.isPhone ? formData.websiteOrPhone : null,
+      phone: formData.isPhone ? formData.websiteOrPhone : null,
+      cta_label: formData.ctaLabel,
+      geo_enabled: formData.geoEnabled,
+      geo_location: formData.geoLocation || null,
+      geo_radius_miles: formData.geoEnabled ? formData.geoRadius : null,
+      audience_size: formData.audienceSize,
+      budget_per_day: formData.budgetPerDay,
+      duration_days: formData.durationDays,
+      total_cost: formData.budgetPerDay * formData.durationDays,
+      status: 'active',
+    }).select();
+
+    // Show success
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('stepSuccess').classList.add('active');
+    document.getElementById('stepDots').innerHTML = '';
+
+  } catch (err) {
+    alert('Something went wrong: ' + (err.message || err));
+    btn.disabled = false;
+    backBtn.disabled = false;
+    document.getElementById('payBtnText').textContent = `Pay $${formData.budgetPerDay * formData.durationDays} with Stripe`;
+  }
+}
+
+// ── UTILS ──
+function esc(str) {
+  const el = document.createElement('span');
+  el.textContent = str || '';
+  return el.innerHTML;
+}
+
+// ── INIT ──
+checkAuth();
+</script>
+</body>
+</html>
