@@ -38,7 +38,7 @@
   .tab.active .count { background: rgba(124,58,237,0.2); color: #A855F7; }
 
   /* Content */
-  .content { padding: 24px; max-width: 900px; }
+  .content { padding: 24px; max-width: 900px; margin: 0 auto; }
   .panel { display: none; }
   .panel.active { display: block; }
 
@@ -64,9 +64,9 @@
   .btn-purple { background: #7C3AED; color: #FFF; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .empty { text-align: center; padding: 60px 20px; color: #52525B; }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-text { font-size: 15px; }
+  .empty { text-align: center; padding: 80px 20px; color: #3F3F46; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.5; }
+  .empty-text { font-size: 14px; color: #52525B; }
 
   .appeal-msg { background: #27272A; border-radius: 8px; padding: 12px; margin-top: 8px; font-size: 14px; color: #D4D4D8; line-height: 1.5; font-style: italic; }
 
@@ -254,7 +254,7 @@ async function loadFlagged() {
 
   const container = document.getElementById('flaggedList');
   if (!sorted.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">&#9989;</div><div class="empty-text">No flagged posts</div></div>';
+    container.innerHTML = '<div class="empty"><div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3F3F46" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><div class="empty-text">No flagged posts — all clear</div></div>';
     return;
   }
 
@@ -313,7 +313,7 @@ async function loadAppeals() {
 
   const container = document.getElementById('appealsList');
   if (!appeals?.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div><div class="empty-text">No pending appeals</div></div>';
+    container.innerHTML = '<div class="empty"><div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3F3F46" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg></div><div class="empty-text">No pending appeals</div></div>';
     return;
   }
 
@@ -379,7 +379,7 @@ async function loadMonitors() {
 
   const container = document.getElementById('monitorsList');
   if (!monitors?.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">&#128101;</div><div class="empty-text">No monitor applications yet</div></div>';
+    container.innerHTML = '<div class="empty"><div class="empty-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3F3F46" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="empty-text">No monitor applications yet</div></div>';
     return;
   }
 
