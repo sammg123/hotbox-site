@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HotBox Admin</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,8 +13,9 @@
   /* Login */
   .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
   .login-box { background: #18181B; border-radius: 16px; padding: 40px; width: 360px; border: 1px solid #27272A; }
-  .login-box h1 { color: #7C3AED; font-size: 24px; margin-bottom: 4px; }
-  .login-box p { color: #71717A; font-size: 14px; margin-bottom: 24px; }
+  .login-logo { display: block; width: 180px; margin: 0 auto 20px; }
+  .login-box h1 { color: #7C3AED; font-size: 24px; margin-bottom: 4px; text-align: center; }
+  .login-box p { color: #71717A; font-size: 14px; margin-bottom: 24px; text-align: center; }
   .login-box label { color: #A1A1AA; font-size: 13px; display: block; margin-bottom: 6px; }
   .login-box input { width: 100%; padding: 10px 14px; background: #27272A; border: 1px solid #3F3F46; border-radius: 8px; color: #FFF; font-size: 15px; margin-bottom: 16px; outline: none; }
   .login-box input:focus { border-color: #7C3AED; }
@@ -24,7 +26,8 @@
   /* Dashboard layout */
   .dashboard { display: none; }
   .topbar { background: #18181B; border-bottom: 1px solid #27272A; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .topbar h1 { font-size: 20px; color: #FFF; display: flex; align-items: center; gap: 8px; }
+  .topbar h1 { font-size: 20px; color: #FFF; display: flex; align-items: center; gap: 10px; }
+  .topbar-logo { width: 32px; height: 32px; object-fit: contain; }
   .topbar .badge { background: rgba(124,58,237,0.15); color: #A855F7; font-size: 12px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
   .logout-btn { background: #27272A; border: 1px solid #3F3F46; color: #A1A1AA; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
   .logout-btn:hover { background: #3F3F46; color: #FFF; }
@@ -89,7 +92,8 @@
 <!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
-    <h1>HotBox Admin</h1>
+    <img src="/logo-full.png" alt="HotBox" class="login-logo">
+    <h1>Admin Dashboard</h1>
     <p>Sign in with your admin account</p>
     <div class="login-error" id="loginError"></div>
     <label>Email</label>
@@ -104,7 +108,7 @@
 <div class="dashboard" id="dashboard">
   <div class="topbar">
     <h1>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      <img src="/favicon.png" class="topbar-logo" alt="">
       Admin Dashboard
       <span class="badge">ADMIN</span>
     </h1>
