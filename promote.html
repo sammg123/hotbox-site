@@ -10,23 +10,38 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
+/* ══════════════════════════════════════════════════
+   HotBox Promote — Exact App Design System
+   Colors, spacing, typography from src/theme/
+   ══════════════════════════════════════════════════ */
+:root{
+  --bg1:#0A0A0B;--bg2:#151518;--bg3:#1F1F23;
+  --accent:#7C3AED;--accent2:#A78BFA;--accent3:#5B21B6;
+  --green:#10B981;--red:#EF4444;--amber:#F59E0B;
+  --t1:#FFFFFF;--t2:#A1A1AA;--t3:#71717A;--t4:#52525B;
+  --b1:#27272A;--b2:#3F3F46;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;
+  --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;
+  /* Strain colors */
+  --indica:#A78BFA;--sativa:#34D399;--hybrid:#F59E0B;--unknown:#9CA3AF;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0A0A0B;color:#E4E4E7;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:#E4E4E7;min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* Auth */
 .auth-gate{display:flex;justify-content:center;align-items:center;min-height:100vh}
-.auth-box{background:#18181B;border-radius:16px;padding:40px;width:380px;border:1px solid #27272A}
+.auth-box{background:var(--bg2);border-radius:var(--r-lg);padding:40px;width:380px;border:1px solid var(--b1)}
 .auth-box img{display:block;width:180px;margin:0 auto 20px}
-.auth-box h1{color:#7C3AED;font-size:22px;text-align:center;margin-bottom:4px}
-.auth-box .sub{color:#71717A;font-size:14px;text-align:center;margin-bottom:24px}
-.auth-box label{color:#A1A1AA;font-size:13px;display:block;margin-bottom:6px}
-.auth-box input{width:100%;padding:10px 14px;background:#27272A;border:1px solid #3F3F46;border-radius:8px;color:#FFF;font-size:15px;margin-bottom:16px;outline:none}
-.auth-box input:focus{border-color:#7C3AED}
-.auth-err{color:#EF4444;font-size:13px;margin-bottom:12px;display:none}
+.auth-box h1{color:var(--accent);font-size:22px;text-align:center;margin-bottom:4px}
+.auth-box .sub{color:var(--t3);font-size:14px;text-align:center;margin-bottom:24px}
+.auth-box label{color:var(--t2);font-size:12px;font-weight:500;letter-spacing:.3px;display:block;margin-bottom:6px}
+.auth-box input{width:100%;padding:var(--sp-md);background:var(--bg2);border:1px solid var(--b2);border-radius:var(--r-sm);color:var(--t1);font-size:16px;margin-bottom:16px;outline:none}
+.auth-box input:focus{border-color:var(--accent)}
+.auth-err{color:var(--red);font-size:12px;margin-bottom:12px;display:none}
 
 /* Layout */
 .app{display:none}
-.topbar{background:#18181B;border-bottom:1px solid #27272A;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:var(--sp-md) var(--sp-lg);display:flex;justify-content:space-between;align-items:center}
 .topbar-l{display:flex;align-items:center;gap:10px}
 .topbar-l img{width:28px;height:28px}
 .topbar-l h1{font-size:18px;color:#FFF}
@@ -486,7 +501,7 @@ function renderCatFields(){
   if(c==='wax')h+=`<div class="f"><label>Extraction Method</label><div class="chips"><div class="chip${D.extraction==='Solvent'?' sel':''}" onclick="D.extraction='Solvent';renderCatFields()">Solvent</div><div class="chip${D.extraction==='Solventless'?' sel':''}" onclick="D.extraction='Solventless';renderCatFields()">Solventless</div></div></div>`;
 
   // Strain type
-  if(['carts','flower','pre-rolls'].includes(c))h+=`<div class="f"><label>Strain Type</label><div class="chips">${STRAIN_TYPES.map(s=>`<div class="chip${D.strain===s?' sel-gold':''}" onclick="D.strain='${s}';renderCatFields()">${s}</div>`).join('')}</div></div>`;
+  if(['carts','flower','pre-rolls'].includes(c)){const SC={Indica:'indica',Sativa:'sativa',Hybrid:'hybrid',Unknown:'unknown'};h+=`<div class="f"><label>Strain Type</label><div class="chips">${STRAIN_TYPES.map(s=>`<div class="chip${D.strain===s?' sel-'+SC[s]:''}" onclick="D.strain='${s}';renderCatFields()">${s}</div>`).join('')}</div></div>`;}
 
   // THC/CBD
   if(!['smoke-spots','dispensary'].includes(c)){
