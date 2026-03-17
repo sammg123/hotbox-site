@@ -43,12 +43,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Layout */
 .app{display:none}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
-.topbar-logo{height:28px;width:auto}
-.topbar-r{display:flex;align-items:center;gap:16px}
-.topbar-u{color:var(--t3);font-size:13px}
-.sm-btn{padding:6px 14px;font-size:13px;border-radius:8px;border:none;background:transparent;color:var(--t3);cursor:pointer}
-.sm-btn:hover{color:var(--t1)}
+.topbar{background:#0A0A0B;border-bottom:1px solid #1A1A1E;padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+.topbar-logo{height:36px;width:auto}
+.topbar-r{display:flex;align-items:center;gap:20px}
+.topbar-u{color:#71717A;font-size:13px}
+.sm-btn{padding:0;font-size:13px;border:none;background:transparent;color:#71717A;cursor:pointer}
+.sm-btn:hover{color:#FFF}
 
 /* Steps */
 .steps{display:flex;justify-content:center;gap:8px;padding:24px 0 16px}
@@ -210,9 +210,9 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 /* ── Ads Dashboard ── */
 .dash{display:none;max-width:960px;margin:0 auto;padding:0 24px 60px}
 .dash-header{display:flex;justify-content:space-between;align-items:center;padding:32px 0 20px}
-.dash-title{font-size:24px;font-weight:700;color:var(--t1);letter-spacing:-.3px}
-.dash-create{display:flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#FFF;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
-.dash-create:hover{background:#6D28D9}
+.dash-title{font-size:24px;font-weight:700;color:#FFF;letter-spacing:-.3px}
+.dash-create{padding:9px 18px;background:transparent;border:1px solid #3F3F46;border-radius:8px;color:#A1A1AA;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.dash-create:hover{border-color:#7C3AED;color:#FFF}
 .dash-tabs{display:flex;gap:0;border-bottom:1px solid var(--b1);margin-bottom:24px}
 .dash-tab{padding:12px 24px;cursor:pointer;color:var(--t3);font-size:14px;font-weight:500;border-bottom:2px solid transparent;transition:all .2s}
 .dash-tab:hover{color:var(--t2)}
@@ -240,8 +240,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 .ad-btn.primary:hover{background:#6D28D9}
 .ad-btn.danger{color:var(--red);border-color:rgba(239,68,68,.3)}
 .ad-btn.danger:hover{background:rgba(239,68,68,.1);border-color:var(--red)}
-.dash-empty{text-align:center;padding:80px 20px}
-.dash-empty-text{font-size:15px;color:var(--t3);margin-bottom:24px}
+.dash-empty{text-align:center;padding:100px 20px}
+.dash-empty-text{font-size:14px;color:#52525B}
 .ad-budget{font-size:13px;color:var(--t2);background:var(--bg3);padding:6px 12px;border-radius:6px;display:inline-block;margin-bottom:var(--sp-sm)}
 
 /* Desktop: full width dashboard, centered wizard */
@@ -776,7 +776,7 @@ function renderAds(){
   const el=document.getElementById('adsList');
 
   if(!list.length){
-    el.innerHTML=`<div class="dash-empty"><div class="dash-empty-text">${dashTab==='active'?'No active promotions':'No promotions yet'}</div><button class="dash-create" onclick="startNewAd()">+ New promotion</button></div>`;
+    el.innerHTML=`<div class="dash-empty"><div class="dash-empty-text">${dashTab==='active'?'No active promotions':'No promotions yet'}</div></div>`;
     return;
   }
 
