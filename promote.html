@@ -449,8 +449,7 @@
 // ── CONFIG ──
 const SUPABASE_URL = 'https://yrziqufrokiwbadbofib.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyemlxdWZyb2tpd2JhZGJvZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNjkyODcsImV4cCI6MjA4Njg0NTI4N30.ZqcRNzhbwmSTVbICpvRSAWTTInGNK83oq2Y-hjj8NP4';
-// TODO: Replace with your Stripe publishable key
-const STRIPE_KEY = 'pk_test_REPLACE_WITH_YOUR_KEY';
+const STRIPE_KEY = 'pk_live_51TBRbW3wvUYDLWcnCKD1oCYCayaavLRz21iUupGPRHvnVeCgGu0aS46cLnXAkPxpJabu2EA157nLrNdNEZfKEX4C00fF4kIWLy';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
@@ -762,64 +761,127 @@ async function handlePayment() {
   document.getElementById('payBtnText').textContent = 'Processing...';
 
   try {
-    // TODO: Replace with actual Stripe Checkout
-    // For now, simulate success and create the promotion in Supabase
-    // In production, you'd create a Stripe Checkout Session via your API,
-    // redirect to Stripe, and create the promotion on webhook confirmation.
+    const total = formData.budgetPerDay * formData.durationDays;
 
-    // Create the promoted post in Supabase
-    const postData = {
-      user_id: currentUser.id,
-      brand: formData.brand || formData.companyName,
-      product_name: formData.productName || null,
-      spark_text: formData.sparkText || null,
-      review_text: formData.reviewText || null,
-      is_poll: formData.postType === 'poll',
-      poll_options: formData.postType === 'poll' ? formData.pollOptions.map(o => ({ text: o, votes: 0 })) : null,
-      category: formData.postType === 'spark' ? 'spark' : 'review',
-      is_promoted: true,
-      promo_url: formData.websiteOrPhone,
-      promo_label: formData.ctaLabel,
-      rating_potency: formData.ratings.potency || null,
-      rating_taste: formData.ratings.taste || null,
-      rating_smoothness: formData.ratings.smoothness || null,
-      rating_value: formData.ratings.value || null,
-      upvotes: 0,
-      downvotes: 0,
-      tried_this_count: 0,
-    };
+    // Save form data to localStorage so we can create the post after payment
+    localStorage.setItem('hotbox_promote_data', JSON.stringify(formData));
+    localStorage.setItem('hotbox_promote_user', currentUser.id);
 
-    const { data: post, error: postErr } = await sb.from('posts').insert(postData).select().single();
-    if (postErr) throw postErr;
+    // Create Stripe Checkout Session via serverless function
+    const resp = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companyName: formData.companyName,
+        budgetPerDay: formData.budgetPerDay,
+        durationDays: formData.durationDays,
+        totalCost: total,
+        postType: formData.postType,
+        audienceSize: formData.audienceSize,
+        geoEnabled: formData.geoEnabled,
+        geoLocation: formData.geoLocation || '',
+        userId: currentUser.id,
+      }),
+    });
 
-    // Create promotion record
-    const { error: promoErr } = await sb.from('promotions').insert({
-      user_id: currentUser.id,
-      post_id: post.id,
-      company_name: formData.companyName,
-      website: !formData.isPhone ? formData.websiteOrPhone : null,
-      phone: formData.isPhone ? formData.websiteOrPhone : null,
-      cta_label: formData.ctaLabel,
-      geo_enabled: formData.geoEnabled,
-      geo_location: formData.geoLocation || null,
-      geo_radius_miles: formData.geoEnabled ? formData.geoRadius : null,
-      audience_size: formData.audienceSize,
-      budget_per_day: formData.budgetPerDay,
-      duration_days: formData.durationDays,
-      total_cost: formData.budgetPerDay * formData.durationDays,
-      status: 'active',
-    }).select();
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Failed to create checkout');
 
-    // Show success
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-    document.getElementById('stepSuccess').classList.add('active');
-    document.getElementById('stepDots').innerHTML = '';
+    // Redirect to Stripe Checkout
+    window.location.href = data.url;
 
   } catch (err) {
     alert('Something went wrong: ' + (err.message || err));
     btn.disabled = false;
     backBtn.disabled = false;
     document.getElementById('payBtnText').textContent = `Pay $${formData.budgetPerDay * formData.durationDays} with Stripe`;
+  }
+}
+
+// ── HANDLE RETURN FROM STRIPE ──
+async function handleStripeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+
+  if (status === 'success') {
+    // Payment succeeded — create the post and promotion in Supabase
+    const savedData = JSON.parse(localStorage.getItem('hotbox_promote_data') || 'null');
+    const savedUserId = localStorage.getItem('hotbox_promote_user');
+
+    if (!savedData || !savedUserId) {
+      alert('Payment successful but session data was lost. Please contact support@hotboxteam.com');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        alert('Please sign in again to complete your promotion setup.');
+        return;
+      }
+
+      // Create the promoted post
+      const postData = {
+        user_id: savedUserId,
+        brand: savedData.brand || savedData.companyName,
+        product_name: savedData.productName || null,
+        spark_text: savedData.sparkText || null,
+        review_text: savedData.reviewText || null,
+        is_poll: savedData.postType === 'poll',
+        poll_options: savedData.postType === 'poll' ? savedData.pollOptions.map(o => ({ text: o, votes: 0 })) : null,
+        category: savedData.postType === 'spark' ? 'spark' : 'review',
+        is_promoted: true,
+        promo_url: savedData.websiteOrPhone,
+        promo_label: savedData.ctaLabel,
+        rating_potency: savedData.ratings.potency || null,
+        rating_taste: savedData.ratings.taste || null,
+        rating_smoothness: savedData.ratings.smoothness || null,
+        rating_value: savedData.ratings.value || null,
+        upvotes: 0,
+        downvotes: 0,
+        tried_this_count: 0,
+      };
+
+      const { data: post, error: postErr } = await sb.from('posts').insert(postData).select().single();
+      if (postErr) throw postErr;
+
+      // Create promotion record
+      await sb.from('promotions').insert({
+        user_id: savedUserId,
+        post_id: post.id,
+        company_name: savedData.companyName,
+        website: !savedData.isPhone ? savedData.websiteOrPhone : null,
+        phone: savedData.isPhone ? savedData.websiteOrPhone : null,
+        cta_label: savedData.ctaLabel,
+        geo_enabled: savedData.geoEnabled,
+        geo_location: savedData.geoLocation || null,
+        geo_radius_miles: savedData.geoEnabled ? savedData.geoRadius : null,
+        audience_size: savedData.audienceSize,
+        budget_per_day: savedData.budgetPerDay,
+        duration_days: savedData.durationDays,
+        total_cost: savedData.budgetPerDay * savedData.durationDays,
+        status: 'active',
+        stripe_session_id: params.get('session_id'),
+      });
+
+      // Clean up
+      localStorage.removeItem('hotbox_promote_data');
+      localStorage.removeItem('hotbox_promote_user');
+
+      // Show success
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('stepSuccess').classList.add('active');
+      document.getElementById('stepDots').innerHTML = '';
+
+    } catch (err) {
+      alert('Payment received but failed to create promotion: ' + err.message + '. Contact support@hotboxteam.com');
+    }
+
+  } else if (status === 'cancelled') {
+    // User cancelled — just show the form
+    window.history.replaceState({}, '', '/promote');
   }
 }
 
@@ -831,7 +893,12 @@ function esc(str) {
 }
 
 // ── INIT ──
-checkAuth();
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('status')) {
+  handleStripeReturn();
+} else {
+  checkAuth();
+}
 </script>
 </body>
 </html>
