@@ -43,12 +43,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* Layout */
 .app{display:none}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:var(--sp-md) var(--sp-lg);display:flex;justify-content:space-between;align-items:center}
-.topbar-l{display:flex;align-items:center;gap:10px}
-.topbar-l img{width:28px;height:28px}
-.topbar-l h1{font-size:18px;color:#FFF}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--b1);padding:16px var(--sp-lg);display:flex;flex-direction:column;align-items:center;gap:12px}
+.topbar-logo{width:140px;height:auto}
 .topbar-r{display:flex;align-items:center;gap:12px}
-.topbar-u{color:#71717A;font-size:13px}
+.topbar-u{color:var(--t3);font-size:12px;font-weight:500;letter-spacing:.3px}
 .sm-btn{padding:6px 14px;font-size:13px;border-radius:8px;border:1px solid #27272A;background:#27272A;color:#A1A1AA;cursor:pointer}
 .sm-btn:hover{background:#3F3F46;color:#FFF}
 
@@ -234,7 +232,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 <!-- APP -->
 <div class="app" id="app">
 <div class="topbar">
-<div class="topbar-l"><img src="/favicon.png" alt=""><h1>Promote</h1></div>
+<img src="/logo-full.png" alt="HotBox" class="topbar-logo">
 <div class="topbar-r"><span class="topbar-u" id="tUser"></span><button class="sm-btn" onclick="aLogout()">Sign Out</button></div>
 </div>
 <div class="steps" id="dots"></div>
