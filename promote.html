@@ -478,11 +478,11 @@ function collectGeo(){D.geoLoc=document.getElementById('gLoc').value.trim()}
 function setType(t){D.type=t;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));document.getElementById('t'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('sel');document.getElementById('revF').style.display=t==='review'?'block':'none';document.getElementById('sparkF').style.display=t==='spark'?'block':'none';document.getElementById('pollF').style.display=t==='poll'?'block':'none';const titles={review:'New Review',spark:'New Spark',poll:'New Poll'};document.querySelector('#s3 .st').textContent=titles[t]}
 
 const CAT_ICONS={
-  carts:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="3"/><line x1="12" y1="6" x2="12" y2="8"/><circle cx="12" cy="16" r="1.5"/></svg>',
+  carts:'<img src="/cart-icon.png" style="width:9px;height:18px;filter:brightness(0) invert(1)" alt="">',
   flower:'<span class="mdi mdi-cannabis" style="font-size:18px"></span>',
   edibles:'<span class="mdi mdi-cookie" style="font-size:18px"></span>',
   wax:'<span class="mdi mdi-beehive-outline" style="font-size:18px"></span>',
-  'pre-rolls':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="7" y2="20"/><circle cx="18" cy="6" r="3"/></svg>',
+  'pre-rolls':'<img src="/preroll-icon.png" style="width:32px;height:14px;filter:brightness(0) invert(1)" alt="">',
   'smoke-spots':'<ion-icon name="location" style="font-size:18px"></ion-icon>',
   dispensary:'<ion-icon name="storefront" style="font-size:18px"></ion-icon>'
 };
