@@ -7,6 +7,8 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://js.stripe.com/v3/"></script>
+<link rel="stylesheet" href="https://unpkg.com/ionicons@7.1.0/dist/css/ionicons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -204,6 +206,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 @media(max-width:540px){.wiz{padding:0 16px 40px}.type-cards,.f-row{flex-direction:column}}
 </style>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
 
@@ -268,9 +272,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 <!-- Post type: horizontal pills with icons, matching app exactly -->
 <div class="type-cards">
-<div class="tc sel" onclick="setType('review')" id="tReview"><div class="tc-icon">&#9733;</div><div class="tc-name">Review</div></div>
-<div class="tc" onclick="setType('poll')" id="tPoll"><div class="tc-icon">&#128202;</div><div class="tc-name">Poll</div></div>
-<div class="tc" onclick="setType('spark')" id="tSpark"><div class="tc-icon">&#9889;</div><div class="tc-name">Spark</div></div>
+<div class="tc sel" onclick="setType('review')" id="tReview"><ion-icon name="star" style="font-size:20px"></ion-icon><div class="tc-name">Review</div></div>
+<div class="tc" onclick="setType('poll')" id="tPoll"><ion-icon name="bar-chart" style="font-size:20px"></ion-icon><div class="tc-name">Poll</div></div>
+<div class="tc" onclick="setType('spark')" id="tSpark"><ion-icon name="flash" style="font-size:20px"></ion-icon><div class="tc-name">Spark</div></div>
 </div>
 
 <!-- ══ REVIEW FIELDS ══ -->
@@ -285,13 +289,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <div class="upload-title">Photo (Optional)</div>
   <div class="upload-btns">
     <div class="upload-btn" onclick="document.getElementById('imgCam').click()">
-      <div class="upload-icon">&#128247;</div>
+      <ion-icon name="camera" style="font-size:32px;color:var(--accent)"></ion-icon>
       Camera
       <input type="file" id="imgCam" accept="image/*" capture="environment" style="display:none" onchange="doUpload(this)">
     </div>
     <div class="upload-divider"></div>
     <div class="upload-btn" onclick="document.getElementById('imgLib').click()">
-      <div class="upload-icon">&#128444;</div>
+      <ion-icon name="images" style="font-size:32px;color:var(--accent2)"></ion-icon>
       Library
       <input type="file" id="imgLib" accept="image/*" style="display:none" onchange="doUpload(this)">
     </div>
@@ -325,13 +329,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <div class="upload-title">Photo (Optional)</div>
   <div class="upload-btns">
     <div class="upload-btn" onclick="document.getElementById('imgSparkCam').click()">
-      <div class="upload-icon">&#128247;</div>
+      <ion-icon name="camera" style="font-size:32px;color:var(--accent)"></ion-icon>
       Camera
       <input type="file" id="imgSparkCam" accept="image/*" capture="environment" style="display:none" onchange="doUpload(this)">
     </div>
     <div class="upload-divider"></div>
     <div class="upload-btn" onclick="document.getElementById('imgSparkLib').click()">
-      <div class="upload-icon">&#128444;</div>
+      <ion-icon name="images" style="font-size:32px;color:var(--accent2)"></ion-icon>
       Library
       <input type="file" id="imgSparkLib" accept="image/*" style="display:none" onchange="doUpload(this)">
     </div>
@@ -473,7 +477,15 @@ function collectGeo(){D.geoLoc=document.getElementById('gLoc').value.trim()}
 // Step 3: Post creation
 function setType(t){D.type=t;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));document.getElementById('t'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('sel');document.getElementById('revF').style.display=t==='review'?'block':'none';document.getElementById('sparkF').style.display=t==='spark'?'block':'none';document.getElementById('pollF').style.display=t==='poll'?'block':'none';const titles={review:'New Review',spark:'New Spark',poll:'New Poll'};document.querySelector('#s3 .st').textContent=titles[t]}
 
-const CAT_ICONS={carts:'&#128267;',flower:'&#127807;',edibles:'&#127850;',wax:'&#129527;','pre-rolls':'&#128684;','smoke-spots':'&#127764;',dispensary:'&#127978;'};
+const CAT_ICONS={
+  carts:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="3"/><line x1="12" y1="6" x2="12" y2="8"/><circle cx="12" cy="16" r="1.5"/></svg>',
+  flower:'<span class="mdi mdi-cannabis" style="font-size:18px"></span>',
+  edibles:'<span class="mdi mdi-cookie" style="font-size:18px"></span>',
+  wax:'<span class="mdi mdi-beehive-outline" style="font-size:18px"></span>',
+  'pre-rolls':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"/><line x1="4" y1="20" x2="7" y2="20"/><circle cx="18" cy="6" r="3"/></svg>',
+  'smoke-spots':'<ion-icon name="location" style="font-size:18px"></ion-icon>',
+  dispensary:'<ion-icon name="storefront" style="font-size:18px"></ion-icon>'
+};
 function renderCats(){document.getElementById('catTabs').innerHTML=CATS.map(c=>`<div class="cat-tab${D.cat===c.id?' sel':''}" onclick="setCat('${c.id}')">${CAT_ICONS[c.id]||''} ${c.label}</div>`).join('')}
 function setCat(id){D.cat=id;renderCats();renderCatFields();renderRatings();document.getElementById('rebuyText').textContent=REBUY_TEXT[id]||REBUY_TEXT.default}
 
