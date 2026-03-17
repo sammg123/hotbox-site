@@ -207,6 +207,44 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 .btn-back:hover{color:#FFF;border-color:#3F3F46}
 .secure{text-align:center;color:#52525B;font-size:12px;margin-top:12px}
 
+/* ── Ads Dashboard ── */
+.dash{display:none;max-width:700px;margin:0 auto;padding:0 var(--sp-md) 60px}
+.dash-header{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-lg) 0 var(--sp-md)}
+.dash-title{font-size:20px;font-weight:600;color:var(--t1)}
+.dash-create{display:flex;align-items:center;gap:6px;padding:10px 20px;background:var(--accent);border:none;border-radius:var(--r-sm);color:#FFF;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.dash-create:hover{background:#6D28D9}
+.dash-tabs{display:flex;gap:2px;margin-bottom:var(--sp-md)}
+.dash-tab{padding:10px 20px;cursor:pointer;color:var(--t3);font-size:14px;font-weight:500;border-bottom:2px solid transparent;transition:all .2s}
+.dash-tab:hover{color:var(--t2)}
+.dash-tab.sel{color:var(--accent);border-bottom-color:var(--accent)}
+.dash-tab .cnt{background:var(--b1);padding:1px 7px;border-radius:10px;font-size:12px;margin-left:6px}
+.dash-tab.sel .cnt{background:rgba(124,58,237,.2);color:#A855F7}
+.ad-card{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r-md);padding:var(--sp-md);margin-bottom:var(--sp-sm);transition:border-color .2s}
+.ad-card:hover{border-color:var(--b2)}
+.ad-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--sp-sm)}
+.ad-name{font-size:16px;font-weight:600;color:var(--t1)}
+.ad-status{font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px}
+.ad-status.active{background:rgba(16,185,129,.15);color:#10B981}
+.ad-status.paused{background:rgba(245,158,11,.15);color:#F59E0B}
+.ad-status.inactive{background:rgba(113,113,122,.15);color:#71717A}
+.ad-status.completed{background:rgba(113,113,122,.15);color:#52525B}
+.ad-meta{font-size:13px;color:var(--t3);margin-bottom:var(--sp-sm);line-height:1.6}
+.ad-stats{display:flex;gap:var(--sp-lg);margin-bottom:var(--sp-md)}
+.ad-stat{text-align:center}
+.ad-stat-val{font-size:18px;font-weight:700;color:var(--t1)}
+.ad-stat-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.ad-actions{display:flex;gap:var(--sp-sm);flex-wrap:wrap}
+.ad-btn{padding:8px 16px;border-radius:var(--r-sm);border:1px solid var(--b2);background:var(--bg3);color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.ad-btn:hover{border-color:var(--t4);color:var(--t1)}
+.ad-btn.primary{background:var(--accent);border-color:var(--accent);color:#FFF}
+.ad-btn.primary:hover{background:#6D28D9}
+.ad-btn.danger{color:var(--red);border-color:rgba(239,68,68,.3)}
+.ad-btn.danger:hover{background:rgba(239,68,68,.1);border-color:var(--red)}
+.dash-empty{text-align:center;padding:60px 20px;color:var(--t4)}
+.dash-empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.dash-empty-text{font-size:15px;color:var(--t3);margin-bottom:var(--sp-lg)}
+.ad-budget{font-size:13px;color:var(--t2);background:var(--bg3);padding:6px 12px;border-radius:6px;display:inline-block;margin-bottom:var(--sp-sm)}
+
 @media(max-width:540px){.wiz{padding:0 16px 40px}.type-cards,.f-row{flex-direction:column}}
 </style>
 <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -235,8 +273,27 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 <img src="/logo-full.png" alt="HotBox" class="topbar-logo">
 <div class="topbar-r"><span class="topbar-u" id="tUser"></span><button class="sm-btn" onclick="aLogout()">Sign Out</button></div>
 </div>
-<div class="steps" id="dots"></div>
-<div class="wiz">
+<!-- ═══ ADS DASHBOARD ═══ -->
+<div class="dash" id="dash">
+  <div class="dash-header">
+    <div class="dash-title">Your Promotions</div>
+    <button class="dash-create" onclick="startNewAd()">
+      <ion-icon name="add" style="font-size:18px"></ion-icon> Create Ad
+    </button>
+  </div>
+  <div class="dash-tabs">
+    <div class="dash-tab sel" onclick="setDashTab('active')" id="dtActive">Active <span class="cnt" id="cntActive">0</span></div>
+    <div class="dash-tab" onclick="setDashTab('inactive')" id="dtInactive">Inactive <span class="cnt" id="cntInactive">0</span></div>
+    <div class="dash-tab" onclick="setDashTab('all')" id="dtAll">All <span class="cnt" id="cntAll">0</span></div>
+  </div>
+  <div id="adsList"></div>
+</div>
+
+<!-- ═══ AD WIZARD ═══ -->
+<div class="steps" id="dots" style="display:none"></div>
+<div class="wiz" id="wizWrap" style="display:none">
+
+<div style="margin-bottom:var(--sp-md)"><button class="sm-btn" onclick="showDash()" style="display:flex;align-items:center;gap:6px"><ion-icon name="arrow-back" style="font-size:16px"></ion-icon> Dashboard</button></div>
 
 <!-- STEP 1: Company -->
 <div class="step active" id="s1">
@@ -391,7 +448,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 
 <!-- Success -->
 <div class="step" id="sOk">
-<div style="text-align:center;padding:40px 0"><div style="font-size:48px;margin-bottom:16px;color:#10B981">&#10003;</div><div class="st" style="text-align:center">You're Live!</div><div class="sd" style="text-align:center;margin-bottom:32px">Your promoted post is now running.</div><button class="btn btn-p" onclick="location.reload()" style="max-width:240px;margin:0 auto">Create Another Ad</button></div>
+<div style="text-align:center;padding:40px 0"><div style="font-size:48px;margin-bottom:16px;color:#10B981">&#10003;</div><div class="st" style="text-align:center">You're Live!</div><div class="sd" style="text-align:center;margin-bottom:32px">Your promoted post is now running.</div><button class="btn btn-p" onclick="showDash()" style="max-width:240px;margin:0 auto">Go to Dashboard</button></div>
 </div>
 
 </div></div>
@@ -400,7 +457,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 const SB_URL='https://yrziqufrokiwbadbofib.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyemlxdWZyb2tpd2JhZGJvZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNjkyODcsImV4cCI6MjA4Njg0NTI4N30.ZqcRNzhbwmSTVbICpvRSAWTTInGNK83oq2Y-hjj8NP4';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-let U=null,curStep=1,map=null,marker=null,circle=null;
+let U=null,curStep=0,map=null,marker=null,circle=null,dashTab='active',allAds=[];
 
 // Form state
 const D={
@@ -451,7 +508,7 @@ const REBUY_TEXT={default:'I would re-buy this','smoke-spots':'I would go here a
 async function aLogin(){const e=document.getElementById('aEmail').value,p=document.getElementById('aPass').value,err=document.getElementById('authErr');err.style.display='none';const{data,error}=await sb.auth.signInWithPassword({email:e,password:p});if(error){err.textContent=error.message;err.style.display='block';return}U=data.user;showApp()}
 async function aLogout(){await sb.auth.signOut();U=null;document.getElementById('app').style.display='none';document.getElementById('authGate').style.display='flex'}
 async function chkAuth(){const{data:{session}}=await sb.auth.getSession();if(session){U=session.user;showApp()}else document.getElementById('authGate').style.display='flex'}
-function showApp(){document.getElementById('authGate').style.display='none';document.getElementById('app').style.display='block';document.getElementById('tUser').textContent=U.email;init()}
+function showApp(){document.getElementById('authGate').style.display='none';document.getElementById('app').style.display='block';document.getElementById('tUser').textContent=U.email;showDash()}
 
 // Init
 function init(){renderDots();renderCTAs();renderCats();renderCatFields();renderRatings();renderSens();renderPollTypes();renderPollDurs();initPollOpts();document.querySelectorAll('input[type=range]').forEach(fillSlider);
@@ -672,6 +729,100 @@ document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));docu
 else if(st==='cancelled')window.history.replaceState({},'','/promote')}
 
 function esc(s){const e=document.createElement('span');e.textContent=s||'';return e.innerHTML}
+
+// ── ADS DASHBOARD ──
+async function showDash(){
+  document.getElementById('dash').style.display='block';
+  document.getElementById('wizWrap').style.display='none';
+  document.getElementById('dots').style.display='none';
+  curStep=0;
+  await loadAds();
+}
+
+async function loadAds(){
+  const{data}=await sb.from('promotions').select('*,posts:post_id(brand,product_name,spark_text,category,is_poll)').eq('user_id',U.id).order('created_at',{ascending:false});
+  allAds=data||[];
+  renderAds();
+}
+
+function setDashTab(t){
+  dashTab=t;
+  document.querySelectorAll('.dash-tab').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('dt'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('sel');
+  renderAds();
+}
+
+function renderAds(){
+  const active=allAds.filter(a=>a.status==='active'||a.status==='paused');
+  const inactive=allAds.filter(a=>a.status==='inactive'||a.status==='completed');
+  document.getElementById('cntActive').textContent=active.length;
+  document.getElementById('cntInactive').textContent=inactive.length;
+  document.getElementById('cntAll').textContent=allAds.length;
+
+  let list=dashTab==='active'?active:dashTab==='inactive'?inactive:allAds;
+  const el=document.getElementById('adsList');
+
+  if(!list.length){
+    el.innerHTML=`<div class="dash-empty"><div class="dash-empty-icon"><ion-icon name="megaphone-outline" style="font-size:48px"></ion-icon></div><div class="dash-empty-text">${dashTab==='active'?'No active promotions':'No promotions yet'}</div><button class="dash-create" onclick="startNewAd()"><ion-icon name="add" style="font-size:18px"></ion-icon> Create Your First Ad</button></div>`;
+    return;
+  }
+
+  el.innerHTML=list.map(ad=>{
+    const post=ad.posts||{};
+    const title=ad.company_name||post.brand||'Untitled';
+    const type=post.is_poll?'Poll':(post.category==='spark'?'Spark':'Review');
+    const target=ad.geo_enabled?(ad.geo_location||'Geo-targeted'):'Entire App';
+    const total=ad.total_cost||ad.budget_per_day*ad.duration_days;
+    const status=ad.status||'inactive';
+    const daysLeft=ad.duration_days?Math.max(0,Math.ceil((new Date(ad.created_at).getTime()+ad.duration_days*86400000-Date.now())/86400000)):0;
+
+    let actions='';
+    if(status==='active'){
+      actions=`<button class="ad-btn" onclick="pauseAd('${ad.id}')">Pause</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
+    }else if(status==='paused'){
+      actions=`<button class="ad-btn primary" onclick="resumeAd('${ad.id}')">Resume</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
+    }else{
+      actions=`<button class="ad-btn primary" onclick="rerunAd('${ad.id}')">Re-run</button><button class="ad-btn danger" onclick="deleteAd('${ad.id}')">Delete</button>`;
+    }
+
+    return`<div class="ad-card" id="ad-${ad.id}">
+      <div class="ad-top"><div class="ad-name">${esc(title)}</div><span class="ad-status ${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></div>
+      <div class="ad-meta">${type} · ${esc(target)} · ${(ad.audience_size||0).toLocaleString()} audience</div>
+      <div class="ad-budget">$${ad.budget_per_day}/day · ${ad.duration_days} days · Total $${total}${status==='active'?' · '+daysLeft+' days left':''}</div>
+      <div class="ad-stats">
+        <div class="ad-stat"><div class="ad-stat-val">${(ad.reach||0).toLocaleString()}</div><div class="ad-stat-label">Reach</div></div>
+        <div class="ad-stat"><div class="ad-stat-val">${ad.conversions||0}</div><div class="ad-stat-label">Conversions</div></div>
+        <div class="ad-stat"><div class="ad-stat-val">${new Date(ad.created_at).toLocaleDateString()}</div><div class="ad-stat-label">Started</div></div>
+      </div>
+      <div class="ad-actions">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+function startNewAd(){
+  document.getElementById('dash').style.display='none';
+  document.getElementById('wizWrap').style.display='block';
+  document.getElementById('dots').style.display='flex';
+  curStep=1;
+  init();
+  go(1);
+}
+
+async function pauseAd(id){if(!confirm('Pause this ad?'))return;await sb.from('promotions').update({status:'paused'}).eq('id',id);loadAds()}
+async function resumeAd(id){if(!confirm('Resume this ad?'))return;await sb.from('promotions').update({status:'active'}).eq('id',id);loadAds()}
+async function stopAd(id){if(!confirm('Stop this ad? It cannot be restarted with the same budget.'))return;await sb.from('promotions').update({status:'inactive'}).eq('id',id);loadAds()}
+async function deleteAd(id){if(!confirm('Permanently delete this ad and its post?'))return;const ad=allAds.find(a=>a.id===id);if(ad&&ad.post_id)await sb.from('posts').delete().eq('id',ad.post_id);await sb.from('promotions').delete().eq('id',id);loadAds()}
+async function rerunAd(id){
+  if(!confirm('Re-run this ad with the same settings? You will be charged again.'))return;
+  const ad=allAds.find(a=>a.id===id);if(!ad)return;
+  // Redirect to Stripe checkout for re-run
+  try{
+    const r=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyName:ad.company_name,budgetPerDay:ad.budget_per_day,durationDays:ad.duration_days,totalCost:ad.budget_per_day*ad.duration_days,postType:'re-run',audienceSize:ad.audience_size||500000,geoEnabled:ad.geo_enabled,geoLocation:ad.geo_location||'',userId:U.id})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error);
+    localStorage.setItem('hb_rerun_id',id);
+    window.location.href=d.url;
+  }catch(e){alert('Error: '+e.message)}
+}
 
 // Init
 const up=new URLSearchParams(location.search);
