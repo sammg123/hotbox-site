@@ -101,9 +101,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .rating-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .r-label{width:110px;font-size:15px;color:#FFF;font-weight:500}
 .r-val{width:36px;font-size:15px;color:#71717A;text-align:right}
-.stars{display:flex;gap:4px}
-.star{width:32px;height:32px;border-radius:4px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3F3F46;font-size:22px;transition:all .15s;border:none;padding:0}
+.stars{display:flex;gap:2px}
+.star-wrap{width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.star{font-size:28px;line-height:1;color:#3F3F46;transition:color .15s;pointer-events:none}
 .star.filled{color:#F59E0B}
+.star.half{background:linear-gradient(90deg,#F59E0B 50%,#3F3F46 50%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* Sensation chips — outlined, larger */
 .sens-chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -137,9 +139,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .sl-title{font-size:14px;color:#A1A1AA}
 .sl-val{font-size:20px;font-weight:700;color:#FFF}
-input[type=range]{width:100%;-webkit-appearance:none;background:transparent}
-input[type=range]::-webkit-slider-track{height:4px;border-radius:2px;background:#27272A}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:10px;background:#7C3AED;cursor:pointer;margin-top:-8px}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:20px}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#7C3AED var(--fill,0%),#27272A var(--fill,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:11px;background:#7C3AED;cursor:pointer;margin-top:-8px;box-shadow:0 0 6px rgba(124,58,237,.4)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#27272A}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:#7C3AED}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;background:#7C3AED;cursor:pointer;border:none}
 
 /* Info cards */
 .ic{background:#18181B;border:1px solid #27272A;border-radius:12px;padding:20px;margin-bottom:16px}
@@ -451,7 +456,7 @@ async function chkAuth(){const{data:{session}}=await sb.auth.getSession();if(ses
 function showApp(){document.getElementById('authGate').style.display='none';document.getElementById('app').style.display='block';document.getElementById('tUser').textContent=U.email;init()}
 
 // Init
-function init(){renderDots();renderCTAs();renderCats();renderCatFields();renderRatings();renderSens();renderPollTypes();renderPollDurs();initPollOpts();
+function init(){renderDots();renderCTAs();renderCats();renderCatFields();renderRatings();renderSens();renderPollTypes();renderPollDurs();initPollOpts();document.querySelectorAll('input[type=range]').forEach(fillSlider);
 document.getElementById('revText').addEventListener('input',e=>{document.getElementById('wc').textContent=e.target.value.trim().split(/\s+/).filter(Boolean).length});
 document.getElementById('sparkTxt').addEventListener('input',e=>{document.getElementById('swc').textContent=e.target.value.trim().split(/\s+/).filter(Boolean).length});
 document.getElementById('cContact').addEventListener('input',e=>{const v=e.target.value;D.isPhone=/^[\d\s()+\-]+$/.test(v)&&v.replace(/\D/g,'').length>=7;renderCTAs();document.getElementById('cHint').textContent=D.isPhone?'Users will call this number':'Where users go when they tap your CTA'});
@@ -470,7 +475,8 @@ function togGeo(){D.geo=!D.geo;document.getElementById('gTgl').classList.toggle(
 function initMap(){if(map)return;map=L.map('map',{zoomControl:true}).setView([39.8,-98.5],4);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'',maxZoom:18}).addTo(map)}
 function geocode(){const q=document.getElementById('gLoc').value.trim();if(!q)return;fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`).then(r=>r.json()).then(d=>{if(!d.length){alert('Location not found');return}const{lat,lon,display_name}=d[0];D.lat=parseFloat(lat);D.lng=parseFloat(lon);D.geoLoc=display_name.split(',').slice(0,2).join(',').trim();document.getElementById('gLoc').value=D.geoLoc;if(marker)map.removeLayer(marker);if(circle)map.removeLayer(circle);marker=L.marker([D.lat,D.lng]).addTo(map);drawCircle();map.setView([D.lat,D.lng],10);updateAud()})}
 function drawCircle(){if(circle)map.removeLayer(circle);if(!D.lat)return;const meters=D.geoR*1609.34;circle=L.circle([D.lat,D.lng],{radius:meters,color:'#7C3AED',fillColor:'#7C3AED',fillOpacity:0.12,weight:2}).addTo(map);map.fitBounds(circle.getBounds().pad(0.1))}
-function updateR(){D.geoR=parseInt(document.getElementById('rSlider').value);document.getElementById('rVal').textContent=D.geoR+' mi';drawCircle();updateAud()}
+function fillSlider(el){const pct=((el.value-el.min)/(el.max-el.min))*100;el.style.setProperty('--fill',pct+'%')}
+function updateR(){const s=document.getElementById('rSlider');D.geoR=parseInt(s.value);document.getElementById('rVal').textContent=D.geoR+' mi';fillSlider(s);drawCircle();updateAud()}
 function updateAud(){D.aud=D.geo?Math.round(D.geoR*D.geoR*10):500000;document.getElementById('aNum').textContent=D.aud.toLocaleString();let l,c;if(D.aud<1000){l='Too Small';c='red'}else if(D.aud<5000){l='Small';c='amber'}else if(D.aud<25000){l='Medium';c='amber'}else if(D.aud<100000){l='Large';c='green'}else{l='Very Large';c='green'}const b=document.getElementById('aBadge');b.textContent=l;b.className='aud-badge '+c}
 function collectGeo(){D.geoLoc=document.getElementById('gLoc').value.trim()}
 
@@ -548,13 +554,28 @@ function renderRatings(){
   const rats=CAT_RATINGS[D.cat]||[];
   let h='';rats.forEach(r=>{
     const key=r.toLowerCase();if(!D.ratings[key])D.ratings[key]=3;
+    const val=D.ratings[key];
     h+=`<div class="rating-row"><span class="r-label">${r}</span><div class="stars">`;
-    for(let i=1;i<=5;i++)h+=`<button class="star${D.ratings[key]>=i?' filled':''}" onclick="setR('${key}',${i})">&#9733;</button>`;
-    h+=`</div><span class="r-val">${D.ratings[key]}.0</span></div>`;
+    for(let i=1;i<=5;i++){
+      const full=val>=i;
+      const half=!full&&val>=i-0.5;
+      h+=`<div class="star-wrap" onclick="setR('${key}',event,${i})">`;
+      if(full)h+=`<span class="star filled">&#9733;</span>`;
+      else if(half)h+=`<span class="star half">&#9733;</span>`;
+      else h+=`<span class="star">&#9733;</span>`;
+      h+=`</div>`;
+    }
+    h+=`</div><span class="r-val">${val.toFixed(1)}</span></div>`;
   });
   document.getElementById('ratingsBox').innerHTML=h;
 }
-function setR(k,v){D.ratings[k]=v;renderRatings()}
+function setR(k,e,i){
+  const rect=e.currentTarget.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const half=x<rect.width/2;
+  D.ratings[k]=half?i-0.5:i;
+  renderRatings();
+}
 
 function renderSens(){document.getElementById('sensC').innerHTML=SENSATIONS.map(s=>`<div class="sens${D.sensations.includes(s)?' sel':''}" onclick="togSens('${s}')">${s}</div>`).join('')}
 function togSens(s){const i=D.sensations.indexOf(s);if(i>=0)D.sensations.splice(i,1);else D.sensations.push(s);renderSens()}
@@ -609,7 +630,7 @@ function buildPv(){
 }
 
 // Step 5: Budget
-function updateB(){D.bpd=parseInt(document.getElementById('bSlider').value);D.dur=parseInt(document.getElementById('dSlider').value);
+function updateB(){const bs=document.getElementById('bSlider'),ds=document.getElementById('dSlider');D.bpd=parseInt(bs.value);D.dur=parseInt(ds.value);fillSlider(bs);fillSlider(ds);
 document.getElementById('bVal').textContent=`$${D.bpd}/day`;document.getElementById('dVal').textContent=`${D.dur} day${D.dur>1?'s':''}`;
 const t=D.bpd*D.dur,dr=Math.min(D.aud,D.bpd*100),r=Math.min(D.aud,Math.round(dr*D.dur*.7)),cl=Math.max(1,Math.round(dr*.02)),ch=Math.max(2,Math.round(dr*.04));
 document.getElementById('eReach').textContent=r.toLocaleString()+' impressions';document.getElementById('eConv').textContent=`${cl}–${ch}/day`;document.getElementById('eAud').textContent=D.aud.toLocaleString();
