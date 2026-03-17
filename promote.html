@@ -47,51 +47,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .st{font-size:22px;font-weight:700;color:#FFF;margin-bottom:6px}
 .sd{font-size:14px;color:#71717A;margin-bottom:24px}
 
-/* Fields */
-.f{margin-bottom:18px}
-.f label{color:#A1A1AA;font-size:13px;font-weight:500;display:block;margin-bottom:6px}
-.f input,.f textarea,.f select{width:100%;padding:11px 14px;background:#18181B;border:1px solid #27272A;border-radius:10px;color:#FFF;font-size:15px;outline:none;font-family:inherit}
+/* Fields — matching app's dark inputs */
+.f{margin-bottom:22px}
+.f label{color:#A1A1AA;font-size:14px;font-weight:600;display:block;margin-bottom:8px}
+.f input,.f textarea,.f select{width:100%;padding:14px 16px;background:#1A1A1E;border:1.5px solid #3F3F46;border-radius:14px;color:#FFF;font-size:16px;outline:none;font-family:inherit}
 .f input:focus,.f textarea:focus{border-color:#7C3AED}
-.f textarea{resize:vertical;min-height:80px}
-.f .hint{color:#52525B;font-size:12px;margin-top:4px}
-.f-row{display:flex;gap:10px}
+.f input::placeholder,.f textarea::placeholder{color:#52525B}
+.f textarea{resize:vertical;min-height:100px}
+.f .hint{color:#52525B;font-size:12px;margin-top:6px}
+.f-row{display:flex;gap:12px}
 .f-row .f{flex:1}
 
-/* Chips */
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:8px 16px;border-radius:20px;background:#18181B;border:1px solid #27272A;color:#A1A1AA;font-size:14px;cursor:pointer;transition:all .2s}
-.chip:hover{border-color:#3F3F46}
+/* Chips — outlined pills matching app */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:10px 18px;border-radius:12px;background:transparent;border:1.5px solid #3F3F46;color:#A1A1AA;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:#52525B;color:#FFF}
 .chip.sel{background:rgba(124,58,237,.15);border-color:#7C3AED;color:#A855F7}
+.chip.sel-gold{background:rgba(245,158,11,.1);border-color:#F59E0B;color:#F59E0B}
 
-/* Category tabs */
-.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
-.cat-tab{padding:8px 14px;border-radius:10px;background:#18181B;border:1px solid #27272A;color:#71717A;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
-.cat-tab:hover{border-color:#3F3F46;color:#A1A1AA}
-.cat-tab.sel{background:rgba(124,58,237,.15);border-color:#7C3AED;color:#A855F7}
+/* Category tabs — pill shape with icons, purple fill when selected */
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:24px;-webkit-overflow-scrolling:touch}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:22px;background:transparent;border:1.5px solid #3F3F46;color:#A1A1AA;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.cat-tab:hover{border-color:#52525B;color:#FFF}
+.cat-tab.sel{background:#7C3AED;border-color:#7C3AED;color:#FFF}
 
-/* Post type cards */
-.type-cards{display:flex;gap:10px;margin-bottom:20px}
-.tc{flex:1;padding:16px;background:#18181B;border:2px solid #27272A;border-radius:12px;text-align:center;cursor:pointer;transition:all .2s}
-.tc:hover{border-color:#3F3F46}
-.tc.sel{border-color:#7C3AED;background:rgba(124,58,237,.08)}
-.tc-icon{font-size:24px;margin-bottom:6px}
-.tc-name{font-size:14px;color:#FFF;font-weight:500}
+/* Post type pills — horizontal, icon+text, purple fill */
+.type-cards{display:flex;gap:10px;margin-bottom:24px}
+.tc{display:flex;align-items:center;gap:8px;padding:14px 22px;background:transparent;border:1.5px solid #3F3F46;border-radius:14px;cursor:pointer;transition:all .2s}
+.tc:hover{border-color:#52525B}
+.tc.sel{border-color:#7C3AED;background:#7C3AED}
+.tc-icon{font-size:18px}
+.tc-name{font-size:15px;color:#FFF;font-weight:600}
 
-/* Star ratings */
-.rating-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.r-label{width:100px;font-size:13px;color:#A1A1AA}
-.r-val{width:30px;font-size:13px;color:#52525B;text-align:right}
-.stars{display:flex;gap:3px}
-.star{width:28px;height:28px;border-radius:6px;background:#27272A;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#52525B;font-size:14px;transition:all .15s;border:none}
-.star.filled{background:rgba(124,58,237,.2);color:#A855F7}
+/* Star ratings — GOLD/AMBER like the app */
+.rating-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.r-label{width:110px;font-size:15px;color:#FFF;font-weight:500}
+.r-val{width:36px;font-size:15px;color:#71717A;text-align:right}
+.stars{display:flex;gap:4px}
+.star{width:32px;height:32px;border-radius:4px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3F3F46;font-size:22px;transition:all .15s;border:none;padding:0}
+.star.filled{color:#F59E0B}
 
-/* Sensation chips */
-.sens-chips{display:flex;flex-wrap:wrap;gap:6px}
-.sens{padding:6px 12px;border-radius:16px;background:#18181B;border:1px solid #27272A;color:#71717A;font-size:13px;cursor:pointer}
+/* Sensation chips — outlined, larger */
+.sens-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sens{padding:10px 16px;border-radius:12px;background:transparent;border:1.5px solid #3F3F46;color:#A1A1AA;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.sens:hover{border-color:#52525B;color:#FFF}
 .sens.sel{background:rgba(124,58,237,.12);border-color:#7C3AED;color:#A855F7}
 
-/* Toggle */
-.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#18181B;border-radius:10px;border:1px solid #27272A;margin-bottom:16px}
+/* Toggle row */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#18181B;border-radius:12px;border:1px solid #27272A;margin-bottom:16px}
 .tgl-label{font-size:15px;color:#FFF}
 .tgl-sub{font-size:12px;color:#71717A;margin-top:2px}
 .tgl{width:44px;height:24px;border-radius:12px;background:#27272A;cursor:pointer;position:relative;transition:background .2s}
@@ -99,11 +103,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tgl::after{content:'';width:20px;height:20px;border-radius:10px;background:#FFF;position:absolute;top:2px;left:2px;transition:transform .2s}
 .tgl.on::after{transform:translateX(20px)}
 
-/* Upload */
-.upload{border:2px dashed #27272A;border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:16px;color:#52525B;font-size:14px}
+/* Upload — Camera/Library split matching app */
+.upload{border:2px dashed #3F3F46;border-radius:14px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:20px;color:#71717A;font-size:15px}
 .upload:hover{border-color:#7C3AED}
+.upload-title{font-size:15px;color:#71717A;margin-bottom:16px}
+.upload-btns{display:flex;justify-content:center;gap:0}
+.upload-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 32px;cursor:pointer;color:#7C3AED;font-size:13px;font-weight:500}
+.upload-divider{width:1px;background:#3F3F46;margin:0 8px}
+.upload-icon{font-size:28px}
 .upload.has img{max-width:100%;border-radius:12px}
 .upload.has{border:none;padding:0}
+.upload.has .upload-title,.upload.has .upload-btns{display:none}
 
 /* Slider */
 .sl-card{background:#18181B;border:1px solid #27272A;border-radius:12px;padding:20px;margin-bottom:16px}
@@ -148,12 +158,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .pv-cta{display:flex;align-items:center;gap:8px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:10px 14px;color:#A855F7;font-size:14px;font-weight:500}
 .pv-cta span{flex:1}
 
-/* Rebuy toggle */
-.rebuy{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#18181B;border:1px solid #27272A;border-radius:10px;cursor:pointer;margin-bottom:16px;transition:all .2s}
-.rebuy.on{border-color:#10B981;background:rgba(16,185,129,.08)}
-.rebuy-check{width:22px;height:22px;border-radius:6px;border:2px solid #3F3F46;display:flex;align-items:center;justify-content:center;color:transparent;font-size:14px;transition:all .2s}
+/* Rebuy toggle — circle check matching app */
+.rebuy{display:flex;align-items:center;gap:12px;padding:16px 18px;background:transparent;border:1.5px solid #3F3F46;border-radius:14px;cursor:pointer;margin-bottom:20px;transition:all .2s}
+.rebuy:hover{border-color:#52525B}
+.rebuy.on{border-color:#10B981;background:rgba(16,185,129,.06)}
+.rebuy-check{width:28px;height:28px;border-radius:14px;border:2px solid #3F3F46;display:flex;align-items:center;justify-content:center;color:transparent;font-size:16px;transition:all .2s;flex-shrink:0}
 .rebuy.on .rebuy-check{border-color:#10B981;background:#10B981;color:#FFF}
-.rebuy-text{font-size:14px;color:#A1A1AA}
+.rebuy-text{font-size:15px;color:#71717A;font-weight:500}
 .rebuy.on .rebuy-text{color:#10B981}
 
 /* Poll */
@@ -237,43 +248,84 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 <!-- STEP 3: Post -->
 <div class="step" id="s3">
-<div class="st">Create Your Post</div>
+<div class="st">New Review</div>
 <div class="sd">This is what users will see in their feed</div>
 
+<!-- Post type: horizontal pills with icons, matching app exactly -->
 <div class="type-cards">
 <div class="tc sel" onclick="setType('review')" id="tReview"><div class="tc-icon">&#9733;</div><div class="tc-name">Review</div></div>
-<div class="tc" onclick="setType('spark')" id="tSpark"><div class="tc-icon">&#9889;</div><div class="tc-name">Spark</div></div>
 <div class="tc" onclick="setType('poll')" id="tPoll"><div class="tc-icon">&#128202;</div><div class="tc-name">Poll</div></div>
+<div class="tc" onclick="setType('spark')" id="tSpark"><div class="tc-icon">&#9889;</div><div class="tc-name">Spark</div></div>
 </div>
 
-<!-- Review fields -->
+<!-- ══ REVIEW FIELDS ══ -->
 <div id="revF">
-<div class="cat-tabs" id="catTabs"></div>
-<div class="upload" id="upArea" onclick="document.getElementById('imgIn').click()">Click to upload product image (optional)<input type="file" id="imgIn" accept="image/*" style="display:none" onchange="doUpload(this)"></div>
 
+<!-- Category: pill tabs with icons, matching app -->
+<div class="f"><label>Category</label></div>
+<div class="cat-tabs" id="catTabs"></div>
+
+<!-- Photo upload: Camera / Library split matching app -->
+<div class="upload" id="upArea">
+  <div class="upload-title">Photo (Optional)</div>
+  <div class="upload-btns">
+    <div class="upload-btn" onclick="document.getElementById('imgCam').click()">
+      <div class="upload-icon">&#128247;</div>
+      Camera
+      <input type="file" id="imgCam" accept="image/*" capture="environment" style="display:none" onchange="doUpload(this)">
+    </div>
+    <div class="upload-divider"></div>
+    <div class="upload-btn" onclick="document.getElementById('imgLib').click()">
+      <div class="upload-icon">&#128444;</div>
+      Library
+      <input type="file" id="imgLib" accept="image/*" style="display:none" onchange="doUpload(this)">
+    </div>
+  </div>
+</div>
+
+<!-- Dynamic fields per category -->
 <div id="dynFields"></div>
 
+<!-- Ratings with gold stars -->
 <div class="f" id="ratingsF"><label>Ratings</label><div id="ratingsBox"></div></div>
 
+<!-- High Sensations -->
 <div class="f"><label>High Sensations</label>
 <div class="sens-chips" id="sensC"></div>
 </div>
 
-<div class="f"><label>Written Review (optional)</label><textarea id="revText" placeholder="Share your thoughts on this product..." rows="3" maxlength="3000"></textarea><div class="hint"><span id="wc">0</span>/500 words</div></div>
-
+<!-- Rebuy toggle -->
 <div class="rebuy" id="rebuyBtn" onclick="togRebuy()">
 <div class="rebuy-check">&#10003;</div>
 <div class="rebuy-text" id="rebuyText">I would re-buy this</div>
 </div>
+
+<!-- Written Review -->
+<div class="f"><label>Written Review (optional)</label><textarea id="revText" placeholder="Share your thoughts on this product..." rows="4" maxlength="3000"></textarea><div class="hint"><span id="wc">0</span>/500 words</div></div>
 </div>
 
-<!-- Spark fields -->
+<!-- ══ SPARK FIELDS ══ -->
 <div id="sparkF" style="display:none">
-<div class="upload" id="upSpark" onclick="document.getElementById('imgSpark').click()">Add an image (optional)<input type="file" id="imgSpark" accept="image/*" style="display:none" onchange="doUpload(this)"></div>
-<div class="f"><label>Your Spark *</label><textarea id="sparkTxt" placeholder="Share a thought, tip, or experience..." rows="4" maxlength="3000"></textarea><div class="hint"><span id="swc">0</span>/500 words</div></div>
+<div class="upload" id="upSpark">
+  <div class="upload-title">Photo (Optional)</div>
+  <div class="upload-btns">
+    <div class="upload-btn" onclick="document.getElementById('imgSparkCam').click()">
+      <div class="upload-icon">&#128247;</div>
+      Camera
+      <input type="file" id="imgSparkCam" accept="image/*" capture="environment" style="display:none" onchange="doUpload(this)">
+    </div>
+    <div class="upload-divider"></div>
+    <div class="upload-btn" onclick="document.getElementById('imgSparkLib').click()">
+      <div class="upload-icon">&#128444;</div>
+      Library
+      <input type="file" id="imgSparkLib" accept="image/*" style="display:none" onchange="doUpload(this)">
+    </div>
+  </div>
+</div>
+<div class="f"><label>Your Spark *</label><textarea id="sparkTxt" placeholder="Share a thought, tip, or experience..." rows="5" maxlength="3000"></textarea><div class="hint"><span id="swc">0</span>/500 words</div></div>
 </div>
 
-<!-- Poll fields -->
+<!-- ══ POLL FIELDS ══ -->
 <div id="pollF" style="display:none">
 <div class="f"><label>Poll Type</label><div class="chips" id="pollTypeC"></div></div>
 <div class="f"><label>Poll Question *</label><textarea id="pollQ" placeholder="What do you want to ask?" rows="2"></textarea></div>
@@ -404,9 +456,10 @@ function updateAud(){D.aud=D.geo?Math.round(D.geoR*D.geoR*10):500000;document.ge
 function collectGeo(){D.geoLoc=document.getElementById('gLoc').value.trim()}
 
 // Step 3: Post creation
-function setType(t){D.type=t;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));document.getElementById('t'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('sel');document.getElementById('revF').style.display=t==='review'?'block':'none';document.getElementById('sparkF').style.display=t==='spark'?'block':'none';document.getElementById('pollF').style.display=t==='poll'?'block':'none'}
+function setType(t){D.type=t;document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));document.getElementById('t'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('sel');document.getElementById('revF').style.display=t==='review'?'block':'none';document.getElementById('sparkF').style.display=t==='spark'?'block':'none';document.getElementById('pollF').style.display=t==='poll'?'block':'none';const titles={review:'New Review',spark:'New Spark',poll:'New Poll'};document.querySelector('#s3 .st').textContent=titles[t]}
 
-function renderCats(){document.getElementById('catTabs').innerHTML=CATS.map(c=>`<div class="cat-tab${D.cat===c.id?' sel':''}" onclick="setCat('${c.id}')">${c.label}</div>`).join('')}
+const CAT_ICONS={carts:'&#128267;',flower:'&#127807;',edibles:'&#127850;',wax:'&#129527;','pre-rolls':'&#128684;','smoke-spots':'&#127764;',dispensary:'&#127978;'};
+function renderCats(){document.getElementById('catTabs').innerHTML=CATS.map(c=>`<div class="cat-tab${D.cat===c.id?' sel':''}" onclick="setCat('${c.id}')">${CAT_ICONS[c.id]||''} ${c.label}</div>`).join('')}
 function setCat(id){D.cat=id;renderCats();renderCatFields();renderRatings();document.getElementById('rebuyText').textContent=REBUY_TEXT[id]||REBUY_TEXT.default}
 
 function renderCatFields(){
@@ -433,7 +486,7 @@ function renderCatFields(){
   if(c==='wax')h+=`<div class="f"><label>Extraction Method</label><div class="chips"><div class="chip${D.extraction==='Solvent'?' sel':''}" onclick="D.extraction='Solvent';renderCatFields()">Solvent</div><div class="chip${D.extraction==='Solventless'?' sel':''}" onclick="D.extraction='Solventless';renderCatFields()">Solventless</div></div></div>`;
 
   // Strain type
-  if(['carts','flower','pre-rolls'].includes(c))h+=`<div class="f"><label>Strain Type</label><div class="chips">${STRAIN_TYPES.map(s=>`<div class="chip${D.strain===s?' sel':''}" onclick="D.strain='${s}';renderCatFields()">${s}</div>`).join('')}</div></div>`;
+  if(['carts','flower','pre-rolls'].includes(c))h+=`<div class="f"><label>Strain Type</label><div class="chips">${STRAIN_TYPES.map(s=>`<div class="chip${D.strain===s?' sel-gold':''}" onclick="D.strain='${s}';renderCatFields()">${s}</div>`).join('')}</div></div>`;
 
   // THC/CBD
   if(!['smoke-spots','dispensary'].includes(c)){
