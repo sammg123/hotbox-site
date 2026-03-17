@@ -243,6 +243,21 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 .dash-empty{text-align:center;padding:100px 20px}
 .dash-empty-text{font-size:14px;color:#52525B}
 .ad-budget{font-size:13px;color:var(--t2);background:var(--bg3);padding:6px 12px;border-radius:6px;display:inline-block;margin-bottom:var(--sp-sm)}
+.ad-progress{margin-bottom:12px}
+.ad-progress-label{font-size:12px;color:#71717A;margin-bottom:6px}
+.ad-progress-bar{height:4px;background:#27272A;border-radius:2px;overflow:hidden}
+.ad-progress-fill{height:100%;background:#7C3AED;border-radius:2px;transition:width .3s}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:1000}
+.modal-box{background:#151518;border:1px solid #27272A;border-radius:16px;padding:32px;width:420px;max-width:90vw}
+.modal-title{font-size:18px;font-weight:600;color:#FFF;margin-bottom:20px}
+.modal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.modal-label{font-size:14px;color:#A1A1AA}
+.modal-val{font-size:14px;color:#FFF;font-weight:600}
+.modal-diff{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:16px;text-align:center;margin:20px 0}
+.modal-diff-amt{font-size:24px;font-weight:700;color:#FFF}
+.modal-diff-label{font-size:12px;color:#71717A;margin-top:4px}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns .btn{flex:1}
 
 /* Desktop: full width dashboard, centered wizard */
 @media(min-width:769px){
@@ -462,6 +477,13 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:11px;ba
 <!-- Success -->
 <div class="step" id="sOk">
 <div style="text-align:center;padding:40px 0"><div style="font-size:48px;margin-bottom:16px;color:#10B981">&#10003;</div><div class="st" style="text-align:center">You're Live!</div><div class="sd" style="text-align:center;margin-bottom:32px">Your promoted post is now running.</div><button class="btn btn-p" onclick="showDash()" style="max-width:240px;margin:0 auto">Go to Dashboard</button></div>
+</div>
+
+<div class="modal-overlay" id="editModal" style="display:none" onclick="closeEdit()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-title">Edit Promotion</div>
+    <div id="editContent"></div>
+  </div>
 </div>
 
 </div></div>
@@ -721,7 +743,23 @@ const d=await r.json();if(!r.ok)throw new Error(d.error);window.location.href=d.
 
 // Stripe return
 async function stripeReturn(){const p=new URLSearchParams(location.search),st=p.get('status');
-if(st==='success'){const sd=JSON.parse(localStorage.getItem('hb_promo')||'null'),uid=localStorage.getItem('hb_uid');
+if(st==='success'){
+// Check if this is an edit upgrade payment
+const editId=localStorage.getItem('hb_edit_id');
+if(editId){
+  try{
+    const{data:{session}}=await sb.auth.getSession();if(!session){alert('Sign in again to finish setup');return}
+    const newBpd=parseInt(localStorage.getItem('hb_edit_bpd'));
+    const newDur=parseInt(localStorage.getItem('hb_edit_dur'));
+    const newTotal=newBpd*newDur;
+    await sb.from('promotions').update({budget_per_day:newBpd,duration_days:newDur,total_cost:newTotal}).eq('id',editId);
+    localStorage.removeItem('hb_edit_id');localStorage.removeItem('hb_edit_bpd');localStorage.removeItem('hb_edit_dur');
+    window.history.replaceState({},'','/promote');
+    U=session.user;showApp();
+    return;
+  }catch(e){alert('Payment received but update failed: '+e.message+'. Contact support@hotboxteam.com');return}
+}
+const sd=JSON.parse(localStorage.getItem('hb_promo')||'null'),uid=localStorage.getItem('hb_uid');
 if(!sd||!uid){alert('Payment OK but session lost. Contact support@hotboxteam.com');return}
 try{const{data:{session}}=await sb.auth.getSession();if(!session){alert('Sign in again to finish setup');return}
 const pd={user_id:uid,brand:sd.brand||sd.co,product_name:sd.product||null,spark_text:sd.sparkTxt||null,review_text:sd.revText||null,
@@ -787,13 +825,17 @@ function renderAds(){
     const target=ad.geo_enabled?(ad.geo_location||'Geo-targeted'):'Entire App';
     const total=ad.total_cost||ad.budget_per_day*ad.duration_days;
     const status=ad.status||'inactive';
-    const daysLeft=ad.duration_days?Math.max(0,Math.ceil((new Date(ad.created_at).getTime()+ad.duration_days*86400000-Date.now())/86400000)):0;
+    const daysElapsed=Math.min(ad.duration_days,Math.ceil((Date.now()-new Date(ad.created_at).getTime())/86400000));
+    const pct=Math.round((daysElapsed/ad.duration_days)*100);
+    const reach=(ad.reach||0);
+    const clicks=(ad.clicks||0);
+    const ctr=reach>0?((clicks/reach)*100).toFixed(1):'0.0';
 
     let actions='';
     if(status==='active'){
-      actions=`<button class="ad-btn" onclick="pauseAd('${ad.id}')">Pause</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
+      actions=`<button class="ad-btn" onclick="openEdit('${ad.id}')">Edit</button><button class="ad-btn" onclick="pauseAd('${ad.id}')">Pause</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
     }else if(status==='paused'){
-      actions=`<button class="ad-btn primary" onclick="resumeAd('${ad.id}')">Resume</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
+      actions=`<button class="ad-btn" onclick="openEdit('${ad.id}')">Edit</button><button class="ad-btn primary" onclick="resumeAd('${ad.id}')">Resume</button><button class="ad-btn danger" onclick="stopAd('${ad.id}')">Stop</button>`;
     }else{
       actions=`<button class="ad-btn primary" onclick="rerunAd('${ad.id}')">Re-run</button><button class="ad-btn danger" onclick="deleteAd('${ad.id}')">Delete</button>`;
     }
@@ -801,12 +843,16 @@ function renderAds(){
     return`<div class="ad-card" id="ad-${ad.id}">
       <div class="ad-top"><div class="ad-name">${esc(title)}</div><span class="ad-status ${status}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></div>
       <div class="ad-meta">${type} · ${esc(target)} · ${(ad.audience_size||0).toLocaleString()} audience</div>
-      <div class="ad-budget">$${ad.budget_per_day}/day · ${ad.duration_days} days · Total $${total}${status==='active'?' · '+daysLeft+' days left':''}</div>
-      <div class="ad-stats">
-        <div class="ad-stat"><div class="ad-stat-val">${(ad.reach||0).toLocaleString()}</div><div class="ad-stat-label">Reach</div></div>
-        <div class="ad-stat"><div class="ad-stat-val">${ad.conversions||0}</div><div class="ad-stat-label">Conversions</div></div>
-        <div class="ad-stat"><div class="ad-stat-val">${new Date(ad.created_at).toLocaleDateString()}</div><div class="ad-stat-label">Started</div></div>
+      <div class="ad-progress">
+        <div class="ad-progress-label">Day ${daysElapsed} of ${ad.duration_days}</div>
+        <div class="ad-progress-bar"><div class="ad-progress-fill" style="width:${pct}%"></div></div>
       </div>
+      <div class="ad-stats">
+        <div class="ad-stat"><div class="ad-stat-val">${reach.toLocaleString()}</div><div class="ad-stat-label">Reach</div></div>
+        <div class="ad-stat"><div class="ad-stat-val">${clicks.toLocaleString()}</div><div class="ad-stat-label">Clicks</div></div>
+        <div class="ad-stat"><div class="ad-stat-val">${ctr}%</div><div class="ad-stat-label">CTR</div></div>
+      </div>
+      <div class="ad-budget">$${ad.budget_per_day}/day · ${ad.duration_days} days · Total $${total}</div>
       <div class="ad-actions">${actions}</div>
     </div>`;
   }).join('');
@@ -835,6 +881,94 @@ async function rerunAd(id){
     localStorage.setItem('hb_rerun_id',id);
     window.location.href=d.url;
   }catch(e){alert('Error: '+e.message)}
+}
+
+// ── EDIT MODAL ──
+let editingAd=null;
+let editBpd=0;
+let editDur=0;
+
+function openEdit(id){
+  editingAd=allAds.find(a=>a.id===id);
+  if(!editingAd)return;
+  editBpd=editingAd.budget_per_day;
+  editDur=editingAd.duration_days;
+  renderEditModal();
+  document.getElementById('editModal').style.display='flex';
+}
+
+function closeEdit(){
+  document.getElementById('editModal').style.display='none';
+  editingAd=null;
+}
+
+function renderEditModal(){
+  const origTotal=editingAd.budget_per_day*editingAd.duration_days;
+  const newTotal=editBpd*editDur;
+  const diff=newTotal-origTotal;
+
+  document.getElementById('editContent').innerHTML=`
+    <div class="sl-card">
+      <div class="sl-hdr"><div class="sl-title">Daily Budget</div><div class="sl-val">$${editBpd}/day</div></div>
+      <input type="range" min="${editingAd.budget_per_day}" max="200" step="1" value="${editBpd}"
+        oninput="editBpd=parseInt(this.value);renderEditModal();fillSlider(this)">
+    </div>
+    <div class="sl-card">
+      <div class="sl-hdr"><div class="sl-title">Duration</div><div class="sl-val">${editDur} days</div></div>
+      <input type="range" min="${editingAd.duration_days}" max="180" step="1" value="${editDur}"
+        oninput="editDur=parseInt(this.value);renderEditModal();fillSlider(this)">
+    </div>
+    <div class="modal-row"><span class="modal-label">Original total</span><span class="modal-val">$${origTotal}</span></div>
+    <div class="modal-row"><span class="modal-label">New total</span><span class="modal-val">$${newTotal}</span></div>
+    ${diff>0?`
+      <div class="modal-diff">
+        <div class="modal-diff-amt">+$${diff}</div>
+        <div class="modal-diff-label">Additional charge</div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn btn-back" onclick="closeEdit()">Cancel</button>
+        <button class="btn btn-p" onclick="payEditDiff(${diff})">Pay $${diff} & Update</button>
+      </div>
+    `:`
+      <div class="modal-btns" style="margin-top:20px">
+        <button class="btn btn-back" onclick="closeEdit()">Cancel</button>
+        <button class="btn btn-p" disabled>No changes</button>
+      </div>
+    `}
+  `;
+  // Fill sliders
+  document.querySelectorAll('#editModal input[type=range]').forEach(fillSlider);
+}
+
+async function payEditDiff(diff){
+  try{
+    const r=await fetch('/api/create-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        companyName:editingAd.company_name+' (upgrade)',
+        budgetPerDay:editBpd,
+        durationDays:editDur,
+        totalCost:diff,
+        postType:'upgrade',
+        audienceSize:editingAd.audience_size||500000,
+        geoEnabled:editingAd.geo_enabled,
+        geoLocation:editingAd.geo_location||'',
+        userId:U.id,
+      }),
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error);
+
+    // Save edit info for after payment
+    localStorage.setItem('hb_edit_id',editingAd.id);
+    localStorage.setItem('hb_edit_bpd',editBpd);
+    localStorage.setItem('hb_edit_dur',editDur);
+
+    window.location.href=d.url;
+  }catch(e){
+    alert('Error: '+e.message);
+  }
 }
 
 // Init
